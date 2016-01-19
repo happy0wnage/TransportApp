@@ -1,0 +1,10 @@
+<Context>
+    <Resource name="jdbc/transport_system" auth="Container" type="javax.sql.DataSource"
+              maxActive="100" maxIdle="30" minIdle="3" maxWait="10000" username="root"
+              password="1234" driverClassName="com.mysql.jdbc.Driver"
+              defaultAutoCommit="false" defaultTransactionIsolation="READ_COMMITTED"
+              url="jdbc:mysql://localhost:3306/transport_system" factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+              connectionProperties="useUnicode=yes;characterEncoding=utf8;"/>
+</Context>
+
+

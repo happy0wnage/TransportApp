@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<security xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="rules.xsd">
+    <rule>
+        <role>user</role>
+        <urls>
+			<url>/index.html</url>
+            <url>/simulation/view</url>
+            <url>/login</url>
+            <url>/user/register</url>
+            <url>/user/add</url>
+			
+            <url>/arc/add</url>
+            <url>/arc/delete</url>
+            <url>/bus/add</url>
+            <url>/bus/delete</url>
+            <url>/route/add</url>
+            <url>/route/delete</url>
+            <url>/station/add</url>
+            <url>/station/delete</url>
+            <url>/simulation/start</url>
+            <url>/simulation/pause</url>
+            <url>/simulation/addBus</url>
+            <url>/logout</url>
+            <url>/download/results</url>
+        </urls>
+    </rule>
+
+    <rule>
+        <role>common</role>
+        <urls>
+            <url>/index.html</url>
+            <url>/simulation/view</url>
+            <url>/login</url>
+            <url>/user/register</url>
+            <url>/user/add</url>
+			<url>/download/results</url>
+        </urls>
+    </rule>
+
+
+</security>
