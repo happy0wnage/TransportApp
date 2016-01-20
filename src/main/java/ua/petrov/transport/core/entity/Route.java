@@ -1,5 +1,7 @@
 package ua.petrov.transport.core.entity;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import ua.petrov.transport.core.JAXB.adapter.TimeAdapter;
 import ua.petrov.transport.core.util.TimeUtil;
 
@@ -130,6 +132,8 @@ public class Route extends Entity {
         this.lastBusTime = lastBusTime;
     }
 
+    @JsonGetter("firstBusTime")
+    @JsonProperty("firstBusTime")
     public long getFirstBusTimeLong() {
         return firstBusTime.toLocalTime().toSecondOfDay();
     }

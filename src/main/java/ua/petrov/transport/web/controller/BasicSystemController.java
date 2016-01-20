@@ -5,8 +5,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
+import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Bus;
 import ua.petrov.transport.core.entity.Route;
+import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.db.dao.arc.IArcDAO;
 import ua.petrov.transport.db.dao.bus.IBusDAO;
 import ua.petrov.transport.db.dao.route.IRouteDAO;
@@ -42,11 +44,19 @@ public class BasicSystemController {
 
         List<Route> routeList = routeDAO.getAll();
         List<Bus> busList = busDAO.getAll();
+        List<Arc> arcList = arcDAO.getAll();
+        List<Station> stationList = stationDAO.getAll();
+
+//        ShortestWay shortestWay = new ShortestWay(arcList, stationList);
+//        shortestWay.getShortestWay();
+//        Solution solution = new Solution(arcList, stationList);
+//        solution.solve();
+
         getBusCount(busList, routeList);
         modelAndView.addObject(Entities.ROUTE, routeList);
         modelAndView.addObject(Entities.BUS, busList);
-        modelAndView.addObject(Entities.ARC, arcDAO.getAll());
-        modelAndView.addObject(Entities.STATION, stationDAO.getAll());
+        modelAndView.addObject(Entities.ARC, arcList);
+        modelAndView.addObject(Entities.STATION, stationList);
         return modelAndView;
     }
 

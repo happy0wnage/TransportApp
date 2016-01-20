@@ -99,10 +99,10 @@ public class SimulationController {
     @ResponseBody
     public List<Bus> pause(HttpSession session) {
         Simulation simulation = (Simulation) session.getAttribute(Entities.SIMULATION_PROCESS);
-        List<Bus> busBeans = simulation.getBusesOnRoute();
-        Collections.sort(busBeans, BusSorter.SORT_BY_TIME_TO_STATION);
+        List<Bus> buses = simulation.getBusesOnRoute();
+        Collections.sort(buses, BusSorter.SORT_BY_TIME_TO_STATION);
         simulation.setPauseFlag();
-        return busBeans;
+        return buses;
     }
 
     @RequestMapping(value = Constants.ADD_BUS, method = RequestMethod.POST)

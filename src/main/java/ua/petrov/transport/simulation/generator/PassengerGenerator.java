@@ -7,6 +7,7 @@ import ua.petrov.transport.core.JAXB.passengers.ArrivalPeriod;
 import ua.petrov.transport.core.JAXB.passengers.DailyFlow;
 import ua.petrov.transport.core.util.random.Randomize;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +27,29 @@ public class PassengerGenerator {
         this.routes = routes;
         this.stations = stations;
         this.flow = flow;
+    }
+
+    public List<Passenger> generatePassengersNow(Station station, long modelTime) {
+        List<Passenger> passengers = new ArrayList<>();
+
+        Random rand = new Random();
+
+        List<ArrivalPeriod> arrivalPeriods = flow.getPeriods();
+        for (ArrivalPeriod period : arrivalPeriods) {
+            if (period.getTimeFrom().isBefore(LocalTime.ofSecondOfDay(modelTime))) {
+                double val = rand.nextGaussian() * DISPERSION + (period.getPassengersCount() * 10);
+                int passengerCount = (int) Math.round(val);
+                for (int j = 0; j < passengerCount; j++) {
+                    Passenger passenger = new Passenger();
+                    passenger.setWaitingTime(Randomize.randomWaitingTime());
+                    passenger.setCurrentStation(station);
+                    passenger.setDestination(StationGenerator.getRandomStationTo(station, routes));
+                    passenger.setTimeOfTheDay(Randomize.randomTime(period.getTimeFrom(), period.getTimeTo()));
+                    passengers.add(passenger);
+                }
+            }
+        }
+        return passengers;
     }
 
     public List<Passenger> generatePassengerPerDay() {

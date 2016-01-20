@@ -7,6 +7,7 @@ import ua.petrov.transport.core.entity.Passenger;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.util.RouteFactory;
+import ua.petrov.transport.simulation.generator.PassengerGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +19,10 @@ import java.util.List;
 public class PassengerController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PassengerController.class);
+
+   private PassengerGenerator passengerGenerator;
+
+
 
     public static int boarding(List<Route> routes, List<Passenger> passengers, Bus bus, List<Passenger> statisticsGoAway, List<Double> prices) {
         int amountOfPassengers = 0;

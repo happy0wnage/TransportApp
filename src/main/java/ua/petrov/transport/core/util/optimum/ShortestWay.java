@@ -1,126 +1,145 @@
 package ua.petrov.transport.core.util.optimum;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.petrov.transport.core.entity.Arc;
-import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created by Владислав on 10.01.2016.
  */
 public class ShortestWay {
 
-    private List<Route> routeList;
-    private List<ArcDijkstra> allArc;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShortestWay.class);
 
-    private int n; // количество перегонов
-    private int m; // количество вершин
+    private List<Arc> allArcs;
 
-    private StationDijkstra startStation;
-    private StationDijkstra endStation;
+    private List<Station> allStations;
 
-    public ShortestWay(List<Route> routeList, Station startStation, Station endStation) {
-        this.startStation = (StationDijkstra) startStation;
-        this.startStation.setWeight(0);
-        this.endStation = (StationDijkstra) endStation;
-        this.routeList = routeList;
+    private Matrix[][] matrix;
 
-        this.allArc = getAllArcs(routeList);
+    private int size;
 
-        n = allArc.size();
-        m = n + 1;
+    public ShortestWay(List<Arc> allArcs, List<Station> allStations) {
+        this.allArcs = allArcs;
+        this.allStations = allStations;
+        matrix = new Matrix[allStations.size()][allStations.size()];
+        size = allStations.size();
     }
 
-    public List<Arc> getShortestWay() {
-        List<Arc> optimalWay = new ArrayList<>();
+    private void fillMatrix() {
+        for (int i = 0; i < size; i++) {
+            Station iSt = allStations.get(i);
+            for (int j = 0; j < size; j++) {
+                Station jSt = allStations.get(j);
 
-        return optimalWay;
+                for (Arc arc : allArcs) {
+                    if ((arc.getFromStation().equals(iSt) && arc.getToStation().equals(jSt)) ||
+                            (arc.getFromStation().equals(jSt) && arc.getToStation().equals(iSt))) {
+                        matrix[i][j] = new Matrix(arc, arc.getTravelTimeLong());
+                        break;
+                    } else {
+                        matrix[i][j] = new Matrix(arc, Integer.MAX_VALUE);
+                    }
+                }
+            }
+        }
     }
 
-
-
-    private List<ArcDijkstra> getAllArcs(List<Route> routes) {
-        Set<ArcDijkstra> arcSet = new HashSet<>();
-        for (Route route : routes) {
-            arcSet.addAll(getArcsDijkstra(route.getArcList()));
+    public void print() {
+        StringBuilder str = new StringBuilder("\n");
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                str.append(matrix[i][j].arcs.size() + "\t");
+            }
+            str.append("\n");
         }
-        return new ArrayList<>(arcSet);
+        LOGGER.error(str.toString());
     }
 
-    private List<ArcDijkstra> getArcsDijkstra(List<Arc> arcs) {
-        return arcs.stream().map(this::getArcDijkstra).collect(Collectors.toList());
+    public void printT() {
+        StringBuilder str = new StringBuilder("\n");
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if(matrix[i][j].travelTime == Integer.MAX_VALUE) {
+                    str.append(0 + "\t");
+                } else {
+                    str.append(matrix[i][j].travelTime + "\t");
+                }
+            }
+            str.append("\n");
+        }
+        LOGGER.error(str.toString());
     }
 
-    private ArcDijkstra getArcDijkstra(Arc arc) {
-        ArcDijkstra arcDijkstra = new ArcDijkstra();
-        arcDijkstra.setFromStation(getStationDijkstra(arc.getFromStation()));
-        arcDijkstra.setToStation(getStationDijkstra(arc.getToStation()));
-        arcDijkstra.setTravelTime(arc.getTravelTime().toLocalTime().toSecondOfDay());
-        return arcDijkstra;
+    public List<Station> getShortestWay() {
+        List<Station> stations = new ArrayList<>();
+
+        fillMatrix();
+        printT();
+        for (int k = 0; k < size; k++) {
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    /*long min = matrix[i][k].travelTime  + matrix[k][j].travelTime;
+                    if(matrix[i][j].travelTime > min) {
+                        matrix[i][j].travelTime = min;
+                        Arc arc = new Arc(matrix[i][k].from, matrix[i][k].to);
+                        Arc arc2 = new Arc(matrix[k][j].from, matrix[k][j].to);
+//                        LOGGER.debug(arc.toString());
+//                        LOGGER.error(arc2.toString());
+                        matrix[i][j].addArc(arc);
+                        matrix[i][j].addArc(arc2);
+                        break;
+                    }*/
+//                    long min = Math.min(matrix[i][j].travelTime,matrix[i][k].travelTime  + matrix[k][j].travelTime);
+                    if(matrix[i][j].travelTime > matrix[i][k].travelTime + matrix[k][j].travelTime) {
+                        LOGGER.debug(String.valueOf(matrix[i][k]));
+                        LOGGER.debug(String.valueOf(matrix[k][j]));
+                        matrix[i][j].travelTime = matrix[i][k].travelTime + matrix[k][j].travelTime;
+                        if (matrix[i][j].travelTime == 860) {
+                            LOGGER.debug(matrix[i][k].toString());
+                            LOGGER.debug(matrix[k][j].toString());
+                        }
+                    }
+                }
+            }
+        }
+        printT();
+
+        print();
+
+        return stations;
     }
 
-    private StationDijkstra getStationDijkstra(Station station) {
-        StationDijkstra stationDijkstra = new StationDijkstra();
-        stationDijkstra.setId(station.getId());
-        stationDijkstra.setName(station.getName());
-        stationDijkstra.setStopTime(station.getStopTime());
-        stationDijkstra.setWeight(Integer.MAX_VALUE);
-        return stationDijkstra;
-    }
+    private class Matrix {
 
-    private class ArcDijkstra {
+        Station from;
 
-        private StationDijkstra fromStation;
+        Station to;
 
-        private StationDijkstra toStation;
+        long travelTime;
 
-        private long travelTime;
+        private List<Arc> arcs = new ArrayList<>();
 
-        public StationDijkstra getFromStation() {
-            return fromStation;
-        }
-
-        public void setFromStation(StationDijkstra fromStation) {
-            this.fromStation = fromStation;
-        }
-
-        public StationDijkstra getToStation() {
-            return toStation;
-        }
-
-        public void setToStation(StationDijkstra toStation) {
-            this.toStation = toStation;
-        }
-
-        public long getTravelTime() {
-            return travelTime;
-        }
-
-        public void setTravelTime(long travelTime) {
+        public Matrix(Arc arc, long travelTime) {
+            this.from = arc.getFromStation();
+            this.to = arc.getToStation();
             this.travelTime = travelTime;
         }
-    }
 
-    private class StationDijkstra extends Station implements Comparable<StationDijkstra> {
-
-        private int weight = Integer.MAX_VALUE;
-
-        public int getWeight() {
-            return weight;
-        }
-
-        public void setWeight(int weight) {
-            this.weight = weight;
+        public void addArc(Arc arc) {
+            arcs.add(arc);
         }
 
         @Override
-        public int compareTo(StationDijkstra o) {
-            return Integer.compare(weight, o.getWeight());
+        public String toString() {
+            return "Matrix{" +
+                    "to=" + to +
+                    ", from=" + from +
+                    '}';
         }
     }
 }

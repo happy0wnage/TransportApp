@@ -151,6 +151,12 @@ function hideOther() {
     }
 }
 
+function toHHMMSS(time) {
+    return moment().startOf('day')
+        .seconds(time)
+        .format('H:mm:ss')
+}
+
 $(document).ready(function () {
 
     $("#startButton").click(function () {
@@ -175,15 +181,10 @@ $(document).ready(function () {
             url: "/simulation/pause",
             success: function (result) {
                 $("#current_position").find("tbody").empty();
+                $("#stateField").html("Time: " + toHHMMSS(result[0].travelTime + result[0].route.firstBusTime));
                 result.forEach(function (item) {
                     var tr = $("<tr></tr>");
                     var td = $("<td></td>");
-
-                    function toHHMMSS(time) {
-                        return moment().startOf('day')
-                            .seconds(time)
-                            .format('H:mm:ss')
-                    }
 
                     var span = $("<span></span>");
                     $(span).attr("aria-hidden", "true");
@@ -198,8 +199,8 @@ $(document).ready(function () {
                         "<td>" + item.id + "</td>",
                         "<td>" + item.route.routingNumber + "</td>",
                         "<td>" + item.currentStation.name + "</td>",
-                        "<td>" + item.timeToStation + "</td>",
-                        "<td>" + item.travelTime + "</td>",
+                        "<td>" + toHHMMSS(item.timeToStation) + "</td>",
+                        "<td>" + toHHMMSS(item.travelTime) + "</td>",
                         "<td>" + item.passengerList.length + "</td>",
                         td.html(span)
                     )

@@ -23,7 +23,7 @@
 
         <div class="panel panel-primary block-hide" id="current_position">
             <div class="panel-heading">
-                <h3 class="panel-title">Current state of the simulation</h3>
+                <h2 class="panel-title middle" id="stateField"></h2>
             </div>
             <div class="panel-body">
                 <table class="table table-striped table-hover ">
