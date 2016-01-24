@@ -56,6 +56,20 @@ public class ArcController {
         }
     }
 
+    @RequestMapping(value = Constants.UPDATE, method = RequestMethod.POST)
+    public String updateArc(HttpServletRequest request, @RequestParam(name = ArcFields.ID_ARC) int id) {
+        ModelMap modelMap = RequestConverter.convertToModelMap(request);
+        Arc arc = getArc(modelMap);
+        arc.setId(id);
+        try {
+            arcDAO.update(arc);
+        } catch (DBLayerException ex) {
+            LOGGER.error(ex.getMessage());
+        } finally {
+            return Constants.REDIRECT + request.getHeader(Constants.REFERER);
+        }
+    }
+
     private Arc getArc(ModelMap modelMap) {
         Arc arc = new Arc();
 

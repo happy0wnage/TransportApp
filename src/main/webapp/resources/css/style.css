@@ -17,7 +17,7 @@ input[type=range][orient=horizontal] {
 input[type=range][orient=vertical] {
     -webkit-appearance: slider-vertical; /* WebKit */
     width: 8px;
-    height: 120px;
+    height: 200px;
     margin: 5px auto;
 }
 
@@ -41,6 +41,11 @@ table.range tr td, th {
     margin: auto;
     display: block;
     padding: 10px 10px 20px 10px;
+    text-align: center;
+}
+
+.center {
+    margin: auto;
     text-align: center;
 }
 
@@ -130,4 +135,10 @@ h3 {
 
 #add_bus_process {
     display: none;
+}
+
+.large {
+    margin: auto;
+    text-align: center;
+    width: 100%;
 }

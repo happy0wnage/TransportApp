@@ -8,7 +8,7 @@
             <form class="form-horizontal" method="post" action="/bus/add">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">ADD BUSr</h4>
+                    <h4 class="modal-title">ADD BUS</h4>
                 </div>
                 <div class="modal-body">
                     <fieldset>
@@ -29,6 +29,18 @@
                             <div class="col-lg-10">
                                 <select class="form-control" name="seat">
                                     <c:forEach var="i" begin="10" end="35" step="1">
+                                        <option value="${i}">${i}</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                        </div>
+                        <hr/>
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label">Bus count</label>
+
+                            <div class="col-lg-10">
+                                <select class="form-control" name="count">
+                                    <c:forEach var="i" begin="1" end="10" step="1">
                                         <option value="${i}">${i}</option>
                                     </c:forEach>
                                 </select>

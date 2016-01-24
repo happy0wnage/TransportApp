@@ -7,7 +7,6 @@ import ua.petrov.transport.core.entity.Passenger;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.util.RouteFactory;
-import ua.petrov.transport.simulation.generator.PassengerGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,55 +19,95 @@ public class PassengerController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PassengerController.class);
 
-   private PassengerGenerator passengerGenerator;
+    private List<Route> routes;
 
+    private List<Passenger> allPassengers;
 
+    private int statisticsGoAway;
 
-    public static int boarding(List<Route> routes, List<Passenger> passengers, Bus bus, List<Passenger> statisticsGoAway, List<Double> prices) {
+    private int statisticsCome;
+
+    private List<Integer> statisticsPercent;
+
+    public PassengerController(List<Route> routes, List<Passenger> passengers) {
+        this.routes = routes;
+        this.allPassengers = passengers;
+        statisticsPercent = new ArrayList<>();
+    }
+
+    public int getStatisticsCome() {
+        return statisticsCome;
+    }
+
+    public int getStatisticsGoAway() {
+        return statisticsGoAway;
+    }
+
+    public List<Integer> getStatisticsPercent() {
+        return statisticsPercent;
+    }
+
+    public void setStatisticsPercent(List<Integer> statisticsPercent) {
+        this.statisticsPercent = statisticsPercent;
+    }
+
+    public void boarding(Bus bus, List<Double> prices) {
         int amountOfPassengers = 0;
-        List<Passenger> allPassengers = new ArrayList<>(passengers);
-        long minTime = bus.getTravelTimeLong() + bus.getStartTimeLong();
-        long maxTime = minTime + bus.getCurrentStation().getStopTimeLong();
+        List<Passenger> passengers = new ArrayList<>(allPassengers);
+        long busMinTime = bus.getTravelTimeLong() + bus.getStartTimeLong();
+        long busMaxTime = busMinTime + bus.getCurrentStation().getStopTimeLong();
 
-        for (Passenger passenger : allPassengers) {
-            if (isPassengerCanBoard(passenger, bus, minTime, maxTime)) {
+        for (Passenger passenger : passengers) {
+            long passengerMinTime = passenger.getTimeOfTheDay();
+            long passengerMaxTime = passenger.getWaitingTime() + passengerMinTime;
+
+            if (passengerMaxTime < busMinTime) {
+                allPassengers.remove(passenger);
+                statisticsGoAway++;
+//                LOGGER.error("!!!Не успел ни на один автобус: " + LocalTime.ofSecondOfDay(passenger.getTimeOfTheDay()) +
+//                        ". Время ожидения" + LocalTime.ofSecondOfDay(passenger.getWaitingTime()));
+                continue;
+            }
+
+            if (isPassengerCanBoard(passenger, bus, busMinTime, busMaxTime)) {
                 Route route = bus.getRoute();
                 Station currentStation = passenger.getCurrentStation();
                 Station destination = passenger.getDestination();
 
                 if (RouteFactory.routesByTwoStations(routes, currentStation, destination, bus.getDirection()).contains(route)) {
-                    if (isPassengerReady(passenger, bus, maxTime, prices)) {
+                    if(isPassengerReady(passenger, bus, busMaxTime, prices)) {
                         bus.addToPassengerList(passenger);
-                        passengers.remove(passenger);
+                        allPassengers.remove(passenger);
                         amountOfPassengers++;
+                    } else {
+                        passenger.setWaitingTime(passengerMaxTime - busMaxTime);
+//                        LOGGER.error("Подождет другого автобуса: " + LocalTime.ofSecondOfDay(passenger.getTimeOfTheDay()) +
+//                                ". Время ожидения" + LocalTime.ofSecondOfDay(passenger.getWaitingTime()));
                     }
+                } else {
+//                    LOGGER.error("Нет подходящих автобусов без пересадок");
                 }
-            } else if (passenger.getTimeOfTheDay() < minTime && passenger.getCurrentStation().equals(bus.getCurrentStation())) {
-                statisticsGoAway.add(passenger);
-                passengers.remove(passenger);
             }
         }
-
         LOGGER.info("Got on the bus:        " + amountOfPassengers);
         LOGGER.info("Now In the bus:        " + bus.getPassengerList().size());
-        return amountOfPassengers;
+        statisticsPercent.add((amountOfPassengers * 100) / bus.getSeat());
     }
 
-    public static int landing(Bus bus, List<Passenger> statisticsCome) {
+    public void landing(Bus bus) {
         int amountOfPassengers = 0;
         List<Passenger> passengersInTheBus = new ArrayList<>(bus.getPassengerList());
         for (Passenger passenger : passengersInTheBus) {
             if (passenger.getDestination().equals(bus.getCurrentStation())) {
                 bus.removeFromPassengersList(passenger);
-                statisticsCome.add(passenger);
                 amountOfPassengers++;
             }
         }
+        statisticsCome += amountOfPassengers;
         LOGGER.info("Left the bus:          " + amountOfPassengers);
-        return amountOfPassengers;
     }
 
-    private static boolean isPassengerReady(Passenger passenger, Bus bus, long busMaxTime, List<Double> prices) {
+    private boolean isPassengerReady(Passenger passenger, Bus bus, long busMaxTime, List<Double> prices) {
         List<Double> allPrices = new ArrayList<>(prices);
         Collections.sort(allPrices);
 
@@ -88,7 +127,7 @@ public class PassengerController {
 
     }
 
-    private static boolean isPassengerCanBoard(Passenger passenger, Bus bus, long minTime, long maxTime) {
+    private boolean isPassengerCanBoard(Passenger passenger, Bus bus, long minTime, long maxTime) {
         long timeOfTheDay = passenger.getTimeOfTheDay();
         long waitingTime = passenger.getWaitingTime();
 
@@ -96,18 +135,26 @@ public class PassengerController {
         int currentSize = bus.getPassengerList().size();
 
         if (passengerStation.equals(bus.getCurrentStation())) {
-            if (isOnLimit(timeOfTheDay, minTime, maxTime, waitingTime) && currentSize< bus.getSeat()){
+            if (isOnLimit(timeOfTheDay, minTime, maxTime, waitingTime) && currentSize < bus.getSeat()) {
                 return true;
             }
         }
         return false;
     }
 
-    private static boolean isOnLimit(long timeOfTheDay, long minTime, long maxTime, long waitingTime) {
-        if (((timeOfTheDay >= minTime && timeOfTheDay <= maxTime) || (timeOfTheDay + waitingTime >= minTime))) {
+    private boolean isOnLimit(long timeOfTheDay, long minTime, long maxTime, long waitingTime) {
+        if (((timeOfTheDay >= minTime || timeOfTheDay + waitingTime >= minTime) && timeOfTheDay <= maxTime)) {
             return true;
         }
         return false;
+    }
+
+    public double getStatisticPercent() {
+        int sum = 0;
+        for (Integer s : statisticsPercent) {
+            sum += s;
+        }
+        return sum / statisticsPercent.size();
     }
 
 }

@@ -14,7 +14,6 @@ import ua.petrov.transport.core.JAXB.event.Results;
 import ua.petrov.transport.core.JAXB.passengers.ArrivalPeriod;
 import ua.petrov.transport.core.JAXB.passengers.DailyFlow;
 import ua.petrov.transport.core.entity.Bus;
-import ua.petrov.transport.core.entity.Passenger;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.sorter.BusSorter;
@@ -25,7 +24,6 @@ import ua.petrov.transport.db.dao.results.IResultsDAO;
 import ua.petrov.transport.db.dao.route.IRouteDAO;
 import ua.petrov.transport.db.dao.station.IStationDAO;
 import ua.petrov.transport.simulation.controller.Simulation;
-import ua.petrov.transport.simulation.generator.PassengerGenerator;
 import ua.petrov.transport.web.Constants;
 import ua.petrov.transport.web.Constants.Entities;
 import ua.petrov.transport.web.Constants.Mapping;
@@ -83,12 +81,12 @@ public class SimulationController {
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         DailyFlow dailyFlow = getFlow(modelMap);
 
-        PassengerGenerator passengerGenerator = new PassengerGenerator(routes, stations, dailyFlow);
-        List<Passenger> passengers = passengerGenerator.generatePassengerPerDay();
+//        PassengerGenerator passengerGenerator = new PassengerGenerator(routes, stations, dailyFlow);
+//        List<Passenger> passengers = passengerGenerator.generatePassengerPerDay();
 
         HttpSession session = request.getSession();
 
-        Simulation simulation = new Simulation(buses, routes, passengers);
+        Simulation simulation = new Simulation(buses, routes, dailyFlow);
         session.setAttribute(Entities.SIMULATION_PROCESS, simulation);
         simulation.start(LocalTime.of(22, 30).toSecondOfDay(), speedValue);
         uploadResults(simulation.getEventLogger());

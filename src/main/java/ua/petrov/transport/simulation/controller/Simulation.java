@@ -3,11 +3,13 @@ package ua.petrov.transport.simulation.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.petrov.transport.core.JAXB.event.ResultEvent;
+import ua.petrov.transport.core.JAXB.passengers.DailyFlow;
 import ua.petrov.transport.core.entity.*;
 import ua.petrov.transport.core.entity.util.Direction;
 import ua.petrov.transport.core.sorter.BusSorter;
 import ua.petrov.transport.core.util.RouteFactory;
 import ua.petrov.transport.simulation.Event;
+import ua.petrov.transport.simulation.generator.PassengerGenerator;
 import ua.petrov.transport.simulation.print.SimulationPrint;
 
 import java.sql.Timestamp;
@@ -22,12 +24,12 @@ import java.util.List;
 public class Simulation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Simulation.class);
+    private static ResultEvent eventLogger = new ResultEvent();
 
     private boolean pauseFlag = false;
 
     //MODEL
     private List<Bus> allBuses;
-    private List<Passenger> allPassengers;
     private List<Route> allRoutes;
 
     protected List<Bus> nextBuses;
@@ -38,37 +40,33 @@ public class Simulation {
 
     private Bus fasterBus;
 
-    private List<Passenger> statisticsGoAway = new ArrayList<>();
-    private List<Passenger> statisticsCome = new ArrayList<>();
-    private List<Integer> statisticsPercent = new ArrayList<>();
-
-    private ResultEvent eventLogger = new ResultEvent();
-
     private long modelTime;
 
-    public Simulation(List<Bus> buses, List<Route> allRoutes, List<Passenger> passengers) {
+//    private List<Passenger> passengersPerDay;
+
+    private PassengerController passengerController;
+
+    public Simulation(List<Bus> buses, List<Route> allRoutes, DailyFlow dailyFlow) {
+        PassengerGenerator passengerGenerator = new PassengerGenerator(allRoutes, dailyFlow);
+        List<Passenger> passengersPerDay = passengerGenerator.generatePassengerPerDay();
+        passengerController = new PassengerController(allRoutes, passengersPerDay);
         this.allRoutes = allRoutes;
-        this.allPassengers = passengers;
         this.allBuses = RouteFactory.fillBuses(buses, this.allRoutes);
-        nextBuses = new ArrayList<>(this.allBuses);
-        busesOnRoute = new ArrayList<>();
+        initBuses();
         LOGGER.info("-----------------------------------------[ " + LocalDateTime.now() + " ]-----------------------------------------");
+    }
+
+    private void initBuses() {
+        nextBuses = new ArrayList<>(allBuses);
+        busesOnRoute = new ArrayList<>();
     }
 
     public List<Bus> getBusesOnRoute() {
         return busesOnRoute;
     }
 
-    public void setBusesOnRoute(List<Bus> busesOnRoute) {
-        this.busesOnRoute = busesOnRoute;
-    }
-
     public ResultEvent getEventLogger() {
         return eventLogger;
-    }
-
-    public void setEventLogger(ResultEvent eventLogger) {
-        this.eventLogger = eventLogger;
     }
 
     public void setPauseFlag() {
@@ -113,11 +111,11 @@ public class Simulation {
             long timeToNextStation = getTimeToNextStation(bus);
             bus.setTimeToStation(timeToNextStation);
 
-            if (bus.getStartTime() == firstBus.getStartTime()) {
+            if (bus.getStartTimeLong() == firstBus.getStartTimeLong()) {
                 nextBuses.remove(bus);
                 busesOnRoute.add(bus);
                 SimulationPrint.newBus(bus);
-                boarding(bus);
+                passengerController.boarding(bus, RouteFactory.getPrices(allRoutes));
             }
         }
 
@@ -126,15 +124,10 @@ public class Simulation {
             bus.setWaitingTime(bus.getStartTimeLong() - fasterBus.getStartTimeLong());
         }
 
-        timeToStation.setTime(fasterBus.getTimeToStationLong());
         setMinTimeToNextBus();
+        setMinTimeToStation();
     }
 
-    private void boarding(Bus bus) {
-        PassengerController.boarding(allRoutes, allPassengers, bus, statisticsGoAway, RouteFactory.getPrices(allRoutes));
-        int count = bus.getPassengerList().size();
-        statisticsPercent.add((count * 100) / bus.getSeat());
-    }
 
     private void initEvent(int speed) {
         try {
@@ -176,17 +169,17 @@ public class Simulation {
             }
         }
 
-        eventLogger.setLoadingPercent(getStatisticPercent());
-        eventLogger.setSatisfiedCount(statisticsCome.size());
-        eventLogger.setDissatisfiedCount(statisticsGoAway.size());
+        eventLogger.setLoadingPercent(passengerController.getStatisticPercent());
+        eventLogger.setSatisfiedCount(passengerController.getStatisticsCome());
+        eventLogger.setDissatisfiedCount(passengerController.getStatisticsGoAway());
         eventLogger.setEndDate(Timestamp.valueOf(LocalDateTime.now()));
     }
 
 
     private long eventDetection() {
         List<Event> events = new ArrayList<>();
-        if(nextBuses.size() > 0) events.add(timeToNextBus);
-        if(busesOnRoute.size() > 0) events.add(timeToStation);
+        if (nextBuses.size() > 0) events.add(timeToNextBus);
+        if (busesOnRoute.size() > 0) events.add(timeToStation);
         Event fasterEvent = Collections.min(events);
         long time = fasterEvent.getTime();
 
@@ -228,7 +221,7 @@ public class Simulation {
                     busesOnRoute.add(bus);
                     nextBuses.remove(bus);
                     SimulationPrint.leftTheDepot(bus);
-                    boarding(bus);
+                    passengerController.boarding(bus, RouteFactory.getPrices(allRoutes));
                 }
             }
             setMinTimeToNextBus();
@@ -253,8 +246,8 @@ public class Simulation {
 
 
     private void stationEventProcess(long modelTime) {
-        List<Bus> buss = new ArrayList<>(busesOnRoute);
-        for (Bus bus : buss) {
+        List<Bus> buses = new ArrayList<>(busesOnRoute);
+        for (Bus bus : buses) {
             bus.addTravelTime(modelTime);
             long difference = bus.getTimeToStationLong() - modelTime;
             bus.setTimeToStation(difference);
@@ -266,25 +259,30 @@ public class Simulation {
                 Station nextStation = bus.next(newCurrentStation);
                 Arc arc = bus.getRoute().arcBetweenTwoStations(newCurrentStation, nextStation);
                 bus.setCurrentStation(newCurrentStation);
-                bus.setWaitingTime(bus.getCurrentStation().getStopTime());
                 bus.setTimeToStation(arc.getTravelTime());
 
-                //Station event logger
-                SimulationPrint.stationEvent(bus, nextStation);
+                passengerController.landing(bus);
 
-                PassengerController.landing(bus, statisticsCome);
-                boarding(bus);
+                if (bus.getCurrentStation().equals(bus.getRoute().getEndStation()) ||
+                        bus.getCurrentStation().equals(bus.getRoute().getStartStation())) {
+                    bus.setWaitingTime(bus.getRoute().getDepotStopTime());
+                    SimulationPrint.waitingEvent(bus, nextStation);
+                    bus.setStartTime(bus.getTravelTimeLong() + bus.getWaitingTimeLong() + bus.getStartTimeLong());
+                    bus.setTravelTime(0);
+                    LOGGER.debug(bus.getWaitingTime() + "\t" + bus.getTravelTime() + "\t" + bus.getStartTime());
+                    nextBuses.add(bus);
+                    busesOnRoute.remove(bus);
+                } else {
+                    bus.setWaitingTime(bus.getCurrentStation().getStopTime());
+                    passengerController.boarding(bus, RouteFactory.getPrices(allRoutes));
+                    SimulationPrint.stationEvent(bus, nextStation);
+                }
+
             }
         }
 
+        setMinTimeToNextBus();
         setMinTimeToStation();
     }
 
-    private double getStatisticPercent() {
-        int sum = 0;
-        for (Integer s : statisticsPercent) {
-            sum += s;
-        }
-        return sum / statisticsPercent.size();
-    }
 }

@@ -17,6 +17,8 @@ public interface IStationDAO {
 
     void add(Station station);
 
+    void update(Station station);
+
     void delete(int id);
 
 }

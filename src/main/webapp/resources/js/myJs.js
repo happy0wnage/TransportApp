@@ -4,7 +4,7 @@
 
 var timeRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
 var priceRegex = /^[\d]+(.[\d]+)?$/;
-var nameRegex = /^[A-Z][a-z]+$/;
+var nameRegex = /^[^?!,*&@%^|]+$/;
 
 function getSpeedValue() {
     var value = document.getElementById("speed").value;
@@ -79,8 +79,7 @@ function routeValidator() {
     var price = document.routeForm.price.value;
     var first_bus_time = document.routeForm.first_bus_time.value;
     var last_bus_time = document.routeForm.last_bus_time.value;
-    var last_bus_time = document.routeForm.last_bus_time.value;
-    var selectedCount = $("#arcList option:selected").length;
+    var depot_stop_time = document.routeForm.depot_stop_time.value;
 
     //routing_number validator
     if (routing_number == "") {
@@ -118,9 +117,13 @@ function routeValidator() {
         document.getElementById("last_bus_time").className = "form-group";
     }
 
-    if (selectedCount < 1) {
-        $("#arc_list_alert").show();
+    //time validation
+    if (depot_stop_time == "" || !timeRegex.test(depot_stop_time)) {
+        document.getElementById("depot_stop_time").className = "form-group has-error";
+        document.routeForm.depot_stop_time.focus();
         return false;
+    } else {
+        document.getElementById("depot_stop_time").className = "form-group";
     }
 
 }
@@ -131,7 +134,7 @@ function hideOther() {
     var temp = 0;
     for (var iter = 1; iter < selects.length + 1; iter++) {
         var select = selects[iter - 1];
-        var option = $("#" + iter + " :selected").text()
+        var option = $("#route" + iter + " :selected").text()
         if (option != "none") {
             flag = true;
             temp = iter;
@@ -141,12 +144,12 @@ function hideOther() {
     if (flag) {
         for (var iter = 1; iter < selects.length + 1; iter++) {
             if (temp != iter) {
-                $("#" + iter).prop("disabled", true);
+                $("#route" + iter).prop("disabled", true);
             }
         }
     } else {
         for (var iter = 1; iter < selects.length + 1; iter++) {
-            $("#" + iter).prop("disabled", false);
+            $("#route" + iter).prop("disabled", false);
         }
     }
 }
@@ -158,6 +161,8 @@ function toHHMMSS(time) {
 }
 
 $(document).ready(function () {
+
+    $("#arcList").css({"height": "400px"});
 
     $("#startButton").click(function () {
         $("#pauseButton").show();
@@ -181,7 +186,7 @@ $(document).ready(function () {
             url: "/simulation/pause",
             success: function (result) {
                 $("#current_position").find("tbody").empty();
-                $("#stateField").html("Time: " + toHHMMSS(result[0].travelTime + result[0].route.firstBusTime));
+                $("#stateField").html("Time: " + toHHMMSS(result[0].travelTime + result[0].startTime));
                 result.forEach(function (item) {
                     var tr = $("<tr></tr>");
                     var td = $("<td></td>");
@@ -234,7 +239,7 @@ $(document).ready(function () {
         var flag = true;
         for (var iter = 1; iter < selects.length + 1; iter++) {
             var select = selects[iter - 1];
-            var option = $("#" + iter + " :selected");
+            var option = $("#route" + iter + " :selected");
             if (option.text() != "none") {
                 flag = false;
                 idRoute = select.name;
@@ -249,7 +254,7 @@ $(document).ready(function () {
                     type: "POST",
                     url: "/simulation/addBus",
                     data: {id_route: idRoute, id_station: idStation, seat: seats},
-                    success: function(e) {
+                    success: function (e) {
                         $("#pauseButton").show();
                         $("#startButton").hide();
                         $("#loading").show();
@@ -261,10 +266,10 @@ $(document).ready(function () {
                             var select = selects[iter - 1];
                             $(select).removeClass("error");
                             $(select).val("none")
-                            $("#" + iter).prop("disabled", false);
+                            $("#route" + iter).prop("disabled", false);
                         }
                     },
-                    error: function(e){
+                    error: function (e) {
                         alert(e.responseText);
                     }
 
@@ -278,5 +283,37 @@ $(document).ready(function () {
         }
     });
 });
+
+function hideArcs(name) {
+    $(name).find("select").each(function (i, element) {
+        if (i!= 0) {
+            console.log(i);
+            $(element).parent().parent().hide();
+        }
+    })
+}
+
+function showSelect(name) {
+    var flag = false;
+    var hide = false;
+    $(name).find("select").each(function (i, element) {
+        if (flag) {
+            $(element).parent().parent().show();
+            flag = false;
+        }
+        if(hide) {
+            $(element).parent().parent().hide();
+            $(element).find("option[value=0]").attr('selected', 'selected');
+            hide = false;
+        }
+
+        var option = $(element).val();
+        if (option != 0) {
+            flag = true;
+        } else {
+            hide = true;
+        }
+    });
+}
 
 

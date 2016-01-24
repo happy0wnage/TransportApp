@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <elem:head/>
-<mod:menu/>
+<modal:menu/>
 
 <body>
 <div class="center">
@@ -46,14 +46,16 @@
             <div class="panel-body">
                 <fieldset>
                     <table class="table table-striped table-hover" id="selects">
-                        <tr>
-                            <c:forEach var="r" items="${route}">
-                                <td>
-                                    <div class="form-group">
+                        <c:set var="idRoute" value="1"/>
+                        <c:forEach var="r" items="${route}">
+                            <tr>
+                                <div class="form-group">
+                                    <td>
                                         <label class="col-lg-2 control-label">${r.routingNumber}</label>
-
+                                    </td>
+                                    <td>
                                         <div class="col-lg-10">
-                                            <select class="form-control" name="${r.id}" id="${r.id}"
+                                            <select class="form-control" name="${r.id}" id="route${idRoute}"
                                                     onchange="return hideOther()">
                                                 <option value="none">none</option>
                                                 <c:forEach var="s" items="${r.stations}">
@@ -61,10 +63,11 @@
                                                 </c:forEach>
                                             </select>
                                         </div>
-                                    </div>
-                                </td>
-                            </c:forEach>
-                        </tr>
+                                    </td>
+                                </div>
+                            </tr>
+                            <c:set var="idRoute" value="${idRoute + 1}"/>
+                        </c:forEach>
                     </table>
 
                     <div class="form-group">
@@ -115,8 +118,8 @@
                             </tr>
                             <tr>
                                 <c:forEach var="value" items="${daily_flow}">
-                                    <td><input name="${value.id}" orient="vertical" type="range" min="1" max="20"
-                                               step="1"
+                                    <td><input name="${value.id}" orient="vertical" type="range" min="1" max="50"
+                                               step="5"
                                                value="${value.passengersCount}"></td>
                                 </c:forEach>
                             </tr>
@@ -130,7 +133,8 @@
 
     <c:if test="${not empty results}">
 
-        <a id="downloadButton" href="/download/results" class="btn btn-default btn-block">Download results&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-save" aria-hidden="true"></span></a>
+        <a id="downloadButton" href="/download/results" class="btn btn-default btn-block">Download results&nbsp;&nbsp;&nbsp;<span
+                class="glyphicon glyphicon-save" aria-hidden="true"></span></a>
         <br/>
 
         <table class="table table-striped table-hover ">

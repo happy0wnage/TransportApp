@@ -77,15 +77,21 @@ public class Extractor {
         try {
             route.setId(resultSet.getInt(RouteFields.ID_ROUTE));
             route.setRoutingNumber(resultSet.getString(RouteFields.ROUTING_NUMBER));
-
-            List<Arc> arcList = routeDAO.getArcByIdRoute(route.getId());
-            route.setStartStation(arcList.get(0).getFromStation());
-            route.setEndStation(arcList.get(arcList.size() - 1).getToStation());
-            route.setType();
             route.setPrice(resultSet.getDouble(RouteFields.PRICE));
             route.setDepotStopTime(resultSet.getTime(RouteFields.DEPOT_STOP_TIME));
             route.setLastBusTime(resultSet.getTime(RouteFields.LAST_BUS_TIME));
             route.setFirstBusTime(resultSet.getTime(RouteFields.FIRST_BUS_TIME));
+
+            List<Arc> arcList = routeDAO.getArcByIdRoute(route.getId());
+            route.setArcList(arcList);
+
+            Station startStation = stationDAO.getStationById(resultSet.getInt(RouteFields.ID_START_STATION));
+            Station endStation = stationDAO.getStationById(resultSet.getInt(RouteFields.ID_END_STATION));
+
+            route.setStartStation(startStation);
+            route.setEndStation(endStation);
+
+            route.setType();
 
         } catch (SQLException e) {
             throw new DataExtractionException("Route not extracted from query result.", e);

@@ -1,0 +1,64 @@
+<div id="updateBus${b.id}" class="modal">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <%--onsubmit="updateBus(id_route, seat, ${b.id})"--%>
+        <div class="modal-content">
+            <form class="form-horizontal" method="post" action="/bus/update?id_bus=${b.id}">
+                <%--action="/bus/update?id_bus=${b.id}"--%>
+                <div class="modal-header">
+                    <button type="button" class="close"
+                            data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">UPDATE BUS</h4>
+                </div>
+                <div class="modal-body">
+                    <fieldset>
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label">Route</label>
+
+                            <div class="col-lg-10">
+                                <select class="form-control" name="id_route">
+                                    <c:forEach var="r" items="${route}">
+                                        <c:choose>
+                                            <c:when test="${b.route == r}">
+                                                <option selected
+                                                        value="${r.id}">${r.routingNumber}</option>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <option value="${r.id}">${r.routingNumber}</option>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label">Seats</label>
+
+                            <div class="col-lg-10">
+                                <select class="form-control" name="seat">
+                                    <c:forEach var="i" begin="10" end="35" step="1">
+                                        <c:choose>
+                                            <c:when test="${b.seat == i}">
+                                                <option selected value="${i}">${i}</option>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <option value="${i}">${i}</option>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">
+                        Close
+                    </button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>

@@ -27,6 +27,7 @@ public class BusDAO extends Dao implements IBusDAO {
     private static final String GET_ALL_BUSES = "SELECT * FROM bus;";
     private static final String GET_BUS_BY_ID = "SELECT * FROM bus WHERE id_bus = ?;";
     private static final String ADD_BUS = "INSERT INTO Bus (id_route, seat) VALUES (?,?);";
+    private static final String UPDATE_BUS = "UPDATE bus set id_route = ?, seat = ? WHERE id_bus = ?";
     private static final String DELETE_BUS = "DELETE FROM bus WHERE id_bus = ?;";
 
     @Override
@@ -74,6 +75,23 @@ public class BusDAO extends Dao implements IBusDAO {
         } catch (SQLException ex) {
             rollback(con);
             throw new DBLayerException("Failed to add bus" + bus, ex);
+        } finally {
+            commit(con);
+        }
+    }
+
+    @Override
+    public void update(Bus bus) {
+        Connection con = MySQLConnection.getWebInstance();
+        try (PreparedStatement pstm = con.prepareStatement(UPDATE_BUS)) {
+            int k = 1;
+            pstm.setInt(k++, bus.getRoute().getId());
+            pstm.setInt(k++, bus.getSeat());
+            pstm.setInt(k, bus.getId());
+            pstm.executeUpdate();
+        } catch (SQLException ex) {
+            rollback(con);
+            throw new DBLayerException("Failed to update bus" + bus, ex);
         } finally {
             commit(con);
         }

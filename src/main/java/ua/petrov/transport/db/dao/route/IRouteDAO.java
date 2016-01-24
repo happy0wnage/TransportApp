@@ -20,5 +20,7 @@ public interface IRouteDAO {
 
     void add(Route route);
 
+    void update(Route route);
+
     void delete(int id);
 }

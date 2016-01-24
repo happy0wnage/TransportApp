@@ -3,7 +3,10 @@ package ua.petrov.transport.core.entity;
 import ua.petrov.transport.core.JAXB.adapter.TimeAdapter;
 import ua.petrov.transport.core.util.TimeUtil;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Time;
 import java.time.LocalTime;
@@ -13,7 +16,7 @@ import java.time.LocalTime;
  */
 @XmlType(name = "station")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Station extends Entity{
+public class Station extends Entity {
 
     @XmlElement(name = "name")
     private String name;

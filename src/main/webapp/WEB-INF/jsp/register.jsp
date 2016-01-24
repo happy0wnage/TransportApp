@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <elem:head/>
-<mod:notLoggedmenu/>
+<modal:notLoggedmenu/>
 
 <body>
 <div class="center">

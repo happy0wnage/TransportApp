@@ -19,6 +19,8 @@ public interface IArcDAO {
 
     int add(Arc arc);
 
+    void update(Arc arc);
+
     void delete(int id);
 
 }

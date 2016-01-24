@@ -33,7 +33,8 @@ public class RouteDAO extends Dao implements IRouteDAO {
     private static final String GET_ALL_ROUTES = "SELECT * FROM route;";
     private static final String GET_ARCS_BY_ID_ROUTE = "SELECT * FROM arc WHERE id_arc IN (SELECT id_arc FROM route_arc WHERE id_route = ?);";
     private static final String GET_ROUTE_BY_ID = "SELECT * FROM route WHERE id_route = ?;";
-    private static final String ADD_ROUTE = "INSERT INTO route (routing_number, price, depot_stop_time, last_bus_time, first_bus_time) VALUES (?,?,?,?,?);";
+    private static final String ADD_ROUTE = "INSERT INTO route (routing_number, price, depot_stop_time, last_bus_time, first_bus_time, id_start_station, id_end_station) VALUES (?,?,?,?,?,?,?);";
+    private static final String UPDATE_ROUTE = "UPDATE route set routing_number = ?, price = ?, depot_stop_time = ?, last_bus_time = ?, first_bus_time = ?, id_start_station = ?, id_end_station = ? WHERE id_route = ?;";
     private static final String ADD_ROUTE_ARC = "INSERT INTO route_arc (id_route, id_arc) VALUES (?,?);";
     private static final String DELETE_ROUTE_ARC = "DELETE FROM route_arc WHERE id_route = ?;";
     private static final String DELETE_ROUTE = "DELETE FROM route WHERE id_route = ?;";
@@ -107,7 +108,9 @@ public class RouteDAO extends Dao implements IRouteDAO {
             pstm.setDouble(k++, route.getPrice());
             pstm.setTime(k++, route.getDepotStopTime());
             pstm.setTime(k++, route.getLastBusTime());
-            pstm.setTime(k, route.getFirstBusTime());
+            pstm.setTime(k++, route.getFirstBusTime());
+            pstm.setInt(k++, route.getStartStation().getId());
+            pstm.setInt(k, route.getEndStation().getId());
             pstm.executeUpdate();
 
             ResultSet rs = pstm.getGeneratedKeys();
@@ -119,6 +122,42 @@ public class RouteDAO extends Dao implements IRouteDAO {
                 pstm = con.prepareStatement(ADD_ROUTE_ARC);
                 k = 1;
                 pstm.setInt(k++, idRoute);
+                pstm.setInt(k, arc.getId());
+                pstm.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            rollback(con);
+            throw new DBLayerException("Failed to add route" + route, ex);
+        } finally {
+            commit(con);
+        }
+    }
+
+    @Override
+    public void update(Route route) {
+        Connection con = MySQLConnection.getWebInstance();
+        try {
+            PreparedStatement pstm = con.prepareStatement(UPDATE_ROUTE);
+            int k = 1;
+            pstm.setString(k++, route.getRoutingNumber());
+            pstm.setDouble(k++, route.getPrice());
+            pstm.setTime(k++, route.getDepotStopTime());
+            pstm.setTime(k++, route.getLastBusTime());
+            pstm.setTime(k++, route.getFirstBusTime());
+            pstm.setInt(k++, route.getStartStation().getId());
+            pstm.setInt(k++, route.getEndStation().getId());
+            pstm.setInt(k, route.getId());
+            pstm.executeUpdate();
+
+            pstm = con.prepareStatement(DELETE_ROUTE_ARC);
+            pstm.setInt(1, route.getId());
+            pstm.executeUpdate();
+
+            List<Arc> arcList = route.getArcList();
+            for (Arc arc : arcList) {
+                pstm = con.prepareStatement(ADD_ROUTE_ARC);
+                k = 1;
+                pstm.setInt(k++, route.getId());
                 pstm.setInt(k, arc.getId());
                 pstm.executeUpdate();
             }

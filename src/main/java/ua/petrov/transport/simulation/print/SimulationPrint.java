@@ -34,6 +34,7 @@ public class SimulationPrint {
                 "]===Route №[" + bus.getRoute().getRoutingNumber().toUpperCase() + "]===left the depot at: " +
                 TimeUtil.getSqlTime(bus.getStartTimeLong()) +
                 " on station: " + bus.getCurrentStation().getName());
+        LOGGER.info("Time to next station:  " + TimeUtil.getSqlTime(bus.getTimeToStationLong()));
         LOGGER.info("Next station:          " + bus.next(bus.getCurrentStation()).getName());
     }
 
@@ -47,6 +48,15 @@ public class SimulationPrint {
         LOGGER.info("Next station:          " + nextStation.getName().toUpperCase());
         LOGGER.info(getDirection(bus.getDirection()));
         LOGGER.info("In the bus:            " + bus.getPassengerList().size());
+    }
+
+    public static void waitingEvent(Bus bus, Station nextStation) {
+        LOGGER.info("======Bus №[" + bus.getId() + "]===Route №[" + bus.getRoute().getRoutingNumber().toUpperCase() +
+                "]===[" + bus.getCurrentStation().getName().toUpperCase() + "]============Time: [" +
+                TimeUtil.getSqlTime(bus.getTravelTimeLong() + bus.getStartTimeLong()) + "]");
+        LOGGER.info("Bus will wait on the depot for:     " + TimeUtil.getSqlTime(bus.getWaitingTimeLong()) + " minutes");
+        LOGGER.info("Next station:          " + nextStation.getName().toUpperCase());
+        LOGGER.info(getDirection(bus.getDirection()));
     }
 
     private static String getDirection(Direction direction) {

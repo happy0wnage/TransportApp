@@ -17,6 +17,8 @@ public interface IBusDAO {
 
     void add(Bus bus);
 
+    void update(Bus bus);
+
     void delete(int id);
 
 }

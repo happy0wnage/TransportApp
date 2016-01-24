@@ -32,11 +32,27 @@ public class BusController {
     private IBusDAO busDAO;
 
     @RequestMapping(value = Constants.ADD, method = RequestMethod.POST)
-    public String addBus(HttpServletRequest request) {
+    public String addBus(HttpServletRequest request, @RequestParam int count) {
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         Bus bus = getBus(modelMap);
         try {
-            busDAO.add(bus);
+            for (int i = 0; i < count; i++) {
+                busDAO.add(bus);
+            }
+        } catch (DBLayerException ex) {
+            LOGGER.error(ex.getMessage());
+        } finally {
+            return Constants.REDIRECT + request.getHeader(Constants.REFERER);
+        }
+    }
+
+    @RequestMapping(value = Constants.UPDATE, method = RequestMethod.POST)
+    public String updateBus(HttpServletRequest request, @RequestParam(name = BusFields.ID_BUS) int id) {
+        ModelMap modelMap = RequestConverter.convertToModelMap(request);
+        Bus bus = getBus(modelMap);
+        bus.setId(id);
+        try {
+            busDAO.update(bus);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
         } finally {
@@ -45,7 +61,7 @@ public class BusController {
     }
 
     @RequestMapping(value = Constants.DELETE, method = RequestMethod.GET)
-    public String deleteBus(HttpServletRequest request, @RequestParam(value = "id_bus") int id) {
+    public String deleteBus(HttpServletRequest request, @RequestParam(value = BusFields.ID_BUS) int id) {
         try {
             busDAO.delete(id);
         } catch (DBLayerException ex) {

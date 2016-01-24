@@ -27,6 +27,7 @@ public class StationDAO extends Dao implements IStationDAO {
     private static final String GET_STATION_BY_ID = "SELECT * FROM station where id_station = ?";
     private static final String GET_ALL_STATION = "SELECT * FROM station";
     private static final String ADD_STATION = "INSERT INTO station (name, stop_time) VALUES (?,?)";
+    private static final String UPDATE_STATION = "UPDATE station set name = ?, stop_time = ? WHERE id_station = ?";
     private static final String DELETE_STATION = "DELETE FROM station WHERE id_station = ?;";
 
     @Override
@@ -74,6 +75,23 @@ public class StationDAO extends Dao implements IStationDAO {
         } catch (SQLException e) {
             rollback(con);
             throw new DBLayerException("Failed to add station", e);
+        } finally {
+            commit(con);
+        }
+    }
+
+    @Override
+    public void update(Station station) {
+        Connection con = MySQLConnection.getWebInstance();
+        try (PreparedStatement pstm = con.prepareStatement(UPDATE_STATION)) {
+            int k = 1;
+            pstm.setString(k++, station.getName());
+            pstm.setTime(k++, station.getStopTime());
+            pstm.setInt(k, station.getId());
+            pstm.executeUpdate();
+        } catch (SQLException e) {
+            rollback(con);
+            throw new DBLayerException("Failed to update station", e);
         } finally {
             commit(con);
         }

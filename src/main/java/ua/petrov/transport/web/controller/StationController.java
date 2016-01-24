@@ -54,8 +54,23 @@ public class StationController {
 
     }
 
+    @RequestMapping(value = Constants.UPDATE, method = RequestMethod.POST)
+    public String updateStation(HttpServletRequest request, @RequestParam(name = StationFields.ID_STATION) int id) {
+        ModelMap modelMap = RequestConverter.convertToModelMap(request);
+        Station station = getStation(modelMap);
+        station.setId(id);
+        try {
+            stationDAO.update(station);
+        } catch (DBLayerException ex) {
+            LOGGER.error(ex.getMessage());
+        } finally {
+            return Constants.REDIRECT + request.getHeader(Constants.REFERER);
+        }
+
+    }
+
     @RequestMapping(value = Constants.DELETE, method = RequestMethod.GET)
-    public String deleteStation(HttpServletRequest request, HttpSession session, @RequestParam(value = "id_station") int id) {
+    public String deleteStation(HttpServletRequest request, HttpSession session, @RequestParam(value = StationFields.ID_STATION) int id) {
         List<Arc> arcList = arcDAO.getArcsByStationId(id);
         if (arcList.size() == 0) {
             try {

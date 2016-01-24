@@ -17,4 +17,12 @@ public class RouteSorter {
             return Long.compare(o1.getLastBusTimeLong(), o2.getLastBusTimeLong());
         }
     };
+
+    public static final Comparator<Route> SORT_BY_START_TIME = new Comparator<Route>() {
+
+        @Override
+        public int compare(Route o1, Route o2) {
+            return Long.compare(o1.getFirstBusTimeLong(), o2.getFirstBusTimeLong());
+        }
+    };
 }

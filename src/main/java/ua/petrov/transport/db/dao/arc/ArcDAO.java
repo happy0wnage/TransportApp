@@ -29,6 +29,7 @@ public class ArcDAO extends Dao implements IArcDAO  {
     private static final String GET_ARC_BY_ID = "SELECT * FROM arc WHERE id_arc = ?";
     private static final String GET_ARCS_BY_ID_STATION = "SELECT * FROM arc WHERE id_station_from = ? OR id_station_to = ?;";
     private static final String ADD_ARC = "INSERT INTO arc (id_station_from, id_station_to, travel_time) VALUES (?,?,?)";
+    private static final String UPDATE_ARC = "UPDATE arc set id_station_from = ?, id_station_to = ?, travel_time = ? WHERE id_arc = ?";
     private static final String DELETE_ARC = "DELETE FROM arc WHERE id_arc = ?;";
 
     @Override
@@ -103,6 +104,24 @@ public class ArcDAO extends Dao implements IArcDAO  {
         } catch (SQLException ex) {
             rollback(con);
             throw new DBLayerException("Failed to add arc" + arc, ex);
+        } finally {
+            commit(con);
+        }
+    }
+
+    @Override
+    public void update(Arc arc) {
+        Connection con = MySQLConnection.getWebInstance();
+        try (PreparedStatement pstm = con.prepareStatement(UPDATE_ARC)) {
+            int k = 1;
+            pstm.setInt(k++, arc.getFromStation().getId());
+            pstm.setInt(k++, arc.getToStation().getId());
+            pstm.setTime(k++, arc.getTravelTime());
+            pstm.setInt(k, arc.getId());
+            pstm.executeUpdate();
+        } catch (SQLException ex) {
+            rollback(con);
+            throw new DBLayerException("Failed to update arc" + arc, ex);
         } finally {
             commit(con);
         }

@@ -12,15 +12,24 @@
 			
             <url>/arc/add</url>
             <url>/arc/delete</url>
+            <url>/arc/update</url>
+
             <url>/bus/add</url>
             <url>/bus/delete</url>
+            <url>/bus/update</url>
+
             <url>/route/add</url>
             <url>/route/delete</url>
+            <url>/route/update</url>
+
             <url>/station/add</url>
             <url>/station/delete</url>
+            <url>/station/update</url>
+
             <url>/simulation/start</url>
             <url>/simulation/pause</url>
             <url>/simulation/addBus</url>
+
             <url>/logout</url>
             <url>/download/results</url>
         </urls>

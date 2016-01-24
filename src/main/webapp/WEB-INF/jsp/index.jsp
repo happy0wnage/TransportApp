@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <elem:head/>
-<mod:menu/>
+<modal:menu/>
 
 <body>
 <div class="center">
@@ -34,7 +34,7 @@
                     <th>Last bus time</th>
                     <th>From-To&nbsp;&nbsp;(timeToStation)</th>
                     <c:if test="${not empty logged_user}">
-                        <th>Option</th>
+                        <th colspan="2">Option</th>
                     </c:if>
                 </tr>
                 </thead>
@@ -50,6 +50,9 @@
                         <td><fmt:formatDate value="${r.lastBusTime}" pattern="HH:mm:ss"/></td>
                         <td class="left">
                             <ul>
+                                <li><strong>Start station:&nbsp;</strong>${r.startStation.name}</li>
+                                <li><strong>End station:&nbsp;</strong>${r.endStation.name}</li>
+                                <hr/>
                                 <c:forEach var="a" items="${r.arcList}">
                                     <li>
                                             ${a.fromStation.name}&nbsp;&mdash;&nbsp;${a.toStation.name}&nbsp;(<fmt:formatDate
@@ -61,6 +64,12 @@
                         </td>
                         <c:if test="${not empty logged_user}">
                             <td>
+                                <a href="" data-target="#updateRoute${r.id}" data-toggle="modal" onclick="hideArcs('#idRoute${r.id}')">
+                                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                                </a>
+                                <%@include file="/WEB-INF/jspf/modifyEls/updateRoute.jspf" %>
+                            </td>
+                            <td>
                                 <a href="/route/delete?id_route=${r.id}&count=${r.busCount}">
                                     <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
                                 </a>
@@ -71,10 +80,9 @@
                 </tbody>
             </table>
 
-            <!-- ADD ROUTE -->
             <c:if test="${not empty logged_user}">
-                <a href="#" data-toggle="modal" data-target="#addRoute" class="btn btn-primary">Add route</a>
-                <mod:routeModal/>
+                <a href="#" onclick="hideArcs('#routeAddForm')" data-toggle="modal" data-target="#addRoute" class="btn btn-default large">Add route</a>
+                <add:routeModal/>
             </c:if>
         </div>
     </div>
@@ -93,7 +101,7 @@
                     <th>Name</th>
                     <th>Stop time</th>
                     <c:if test="${not empty logged_user}">
-                        <th>Option</th>
+                        <th colspan="2">Option</th>
                     </c:if>
                 </tr>
                 </thead>
@@ -103,6 +111,13 @@
                         <td>${s.name}</td>
                         <td><fmt:formatDate value="${s.stopTime}" pattern="HH:mm:ss"/></td>
                         <c:if test="${not empty logged_user}">
+                            <td>
+                                <a href="" data-target="#updateStation${s.id}" data-toggle="modal">
+                                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                                </a>
+                                <%@include file="/WEB-INF/jspf/modifyEls/updateStation.jspf" %>
+                            </td>
+
                             <td>
                                 <a href="/station/delete?id_station=${s.id}">
                                     <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
@@ -115,8 +130,8 @@
             </table>
             <!-- ADD STATION -->
             <c:if test="${not empty logged_user}">
-                <a href="#" data-toggle="modal" data-target="#addStation" class="btn btn-primary">Add station</a>
-                <mod:stationModal/>
+                <a href="#" data-toggle="modal" data-target="#addStation" class="btn btn-default large">Add station</a>
+                <add:stationModal/>
             </c:if>
         </div>
     </div>
@@ -135,7 +150,7 @@
                     <th>Routing number</th>
                     <th>Seats</th>
                     <c:if test="${not empty logged_user}">
-                        <th>Option</th>
+                        <th colspan="2">Option</th>
                     </c:if>
                 </tr>
                 </thead>
@@ -146,6 +161,12 @@
                         <td>${b.route.routingNumber}</td>
                         <td>${b.seat}</td>
                         <c:if test="${not empty logged_user}">
+                            <td>
+                                <a href="" data-target="#updateBus${b.id}" data-toggle="modal">
+                                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                                </a>
+                                <%@include file="/WEB-INF/jspf/modifyEls/updateBus.jspf" %>
+                            </td>
                             <td>
                                 <a href="/bus/delete?id_bus=${b.id}">
                                     <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
@@ -158,8 +179,8 @@
             </table>
             <!-- ADD BUSES -->
             <c:if test="${not empty logged_user}">
-                <a href="#" data-toggle="modal" data-target="#addBus" class="btn btn-primary">Add bus</a>
-                <mod:busModal/>
+                <a href="#" data-toggle="modal" data-target="#addBus" class="btn btn-default large">Add bus</a>
+                <add:busModal/>
             </c:if>
         </div>
     </div>
@@ -177,7 +198,9 @@
                     <th>Station from</th>
                     <th>Station to</th>
                     <th>Travel time</th>
-                    <th>Option</th>
+                    <c:if test="${not empty logged_user}">
+                        <th colspan="2">Option</th>
+                    </c:if>
                 </tr>
                 </thead>
                 <tbody>
@@ -186,19 +209,28 @@
                         <td>${a.fromStation.name}</td>
                         <td>${a.toStation.name}</td>
                         <td>${a.travelTime}</td>
-                        <td>
-                            <a href="/arc/delete?id_arc=${a.id}">
-                                <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
-                            </a>
-                        </td>
+                        <c:if test="${not empty logged_user}">
+                            <td>
+                                <a href="" data-target="#updateArc${a.id}"
+                                   data-toggle="modal">
+                                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                                </a>
+                                <%@include file="/WEB-INF/jspf/modifyEls/updateArc.jspf" %>
+                            </td>
+                            <td>
+                                <a href="/arc/delete?id_arc=${a.id}">
+                                    <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
+                                </a>
+                            </td>
+                        </c:if>
                     </tr>
                 </c:forEach>
                 </tbody>
             </table>
-            <!-- ADD BUSES -->
+            <!-- ADD ARC -->
             <c:if test="${not empty logged_user}">
-                <a href="#" data-toggle="modal" data-target="#addArc" class="btn btn-primary">Add arc</a>
-                <mod:arcModal/>
+                <a href="#" data-toggle="modal" data-target="#addArc" class="btn btn-default large">Add arc</a>
+                <add:arcModal/>
             </c:if>
         </div>
     </div>

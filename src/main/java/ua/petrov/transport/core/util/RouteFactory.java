@@ -19,9 +19,6 @@ public class RouteFactory {
             long busTime = route.getFirstBusTimeLong();
             breakTime = route.getDepotStopTimeLong();
             for (Bus bus : allBuses) {
-                Route route1 = bus.getRoute();
-                boolean flag = route1.equals(route);
-
                 if (bus.getRoute().equals(route)) {
                     bus.getRoute().setArcList(route.getArcList());
                     bus.setCurrentStation(route.getStartStation());

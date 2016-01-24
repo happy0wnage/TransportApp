@@ -31,6 +31,8 @@ public class DbTables {
         public static final String DEPOT_STOP_TIME = "depot_stop_time";
         public static final String LAST_BUS_TIME = "last_bus_time";
         public static final String FIRST_BUS_TIME = "first_bus_time";
+        public static final String ID_START_STATION = "id_start_station";
+        public static final String ID_END_STATION = "id_end_station";
     }
 
     public class ResultsFields {

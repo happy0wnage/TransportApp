@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
                 "arcList"
         })
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Route extends Entity {
+public class    Route extends Entity {
 
     @XmlElement(name = "routing_number")
     private String routingNumber;
@@ -269,6 +269,7 @@ public class Route extends Entity {
 
         Route route = (Route) o;
 
+        if (Integer.compare(route.getId(), getId()) != 0) return false;
         if (Double.compare(route.price, price) != 0) return false;
         if (depotStopTime != null ? !depotStopTime.equals(route.depotStopTime) : route.depotStopTime != null)
             return false;
