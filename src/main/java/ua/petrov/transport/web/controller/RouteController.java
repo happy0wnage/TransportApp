@@ -12,13 +12,14 @@ import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.db.constants.DbTables.RouteFields;
-import ua.petrov.transport.db.dao.arc.IArcDAO;
-import ua.petrov.transport.db.dao.route.IRouteDAO;
-import ua.petrov.transport.db.dao.station.IStationDAO;
 import ua.petrov.transport.exception.DBLayerException;
 import ua.petrov.transport.exception.IncorrectRouteException;
+import ua.petrov.transport.service.arc.IArcService;
+import ua.petrov.transport.service.route.IRouteService;
+import ua.petrov.transport.service.station.IStationService;
 import ua.petrov.transport.web.Constants;
 import ua.petrov.transport.web.Constants.Mapping;
+import ua.petrov.transport.web.Constants.Message;
 import ua.petrov.transport.web.converter.RequestConverter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,23 +41,23 @@ public class RouteController {
     private static final String WRONG_ORDER = "Wrong station order";
 
     @Autowired
-    private IRouteDAO routeDAO;
+    private IRouteService routeService;
 
     @Autowired
-    private IArcDAO arcDAO;
+    private IArcService arcService;
 
     @Autowired
-    private IStationDAO stationDAO;
+    private IStationService stationService;
 
     @RequestMapping(value = Constants.ADD, method = RequestMethod.POST)
     public String addRoute(HttpServletRequest request, HttpSession session) {
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         try {
             Route route = getRoute(modelMap);
-            routeDAO.add(route);
+            routeService.add(route);
         } catch (DBLayerException | IncorrectRouteException ex) {
             LOGGER.error(ex.getMessage());
-            session.setAttribute(Constants.ERROR_MESSAGE, ex.getMessage());
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
         } finally {
             return Constants.REDIRECT + request.getHeader(Constants.REFERER);
         }
@@ -68,10 +69,10 @@ public class RouteController {
         try {
             Route route = getRoute(modelMap);
             route.setId(id);
-            routeDAO.update(route);
+            routeService.update(route);
         } catch (DBLayerException | IncorrectRouteException ex) {
             LOGGER.error(ex.getMessage());
-            session.setAttribute(Constants.ERROR_MESSAGE, ex.getMessage());
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
         } finally {
             return Constants.REDIRECT + request.getHeader(Constants.REFERER);
         }
@@ -81,13 +82,13 @@ public class RouteController {
     public String deleteRoute(HttpServletRequest request, HttpSession session, @RequestParam(value = "id_route") int id, @RequestParam int count) {
         if (count == 0) {
             try {
-                routeDAO.delete(id);
+                routeService.delete(id);
             } catch (DBLayerException ex) {
                 LOGGER.error(ex.getMessage());
             }
         } else {
             LOGGER.error(VALUE);
-            session.setAttribute(Constants.ERROR_MESSAGE, VALUE);
+            session.setAttribute(Message.ERROR_MESSAGE, VALUE);
         }
         return Constants.REDIRECT + request.getHeader(Constants.REFERER);
     }
@@ -118,7 +119,7 @@ public class RouteController {
         modelMap.entrySet().stream().filter(entry -> entry.getKey().contains("idst")).forEach(entry -> {
             int idStation = Integer.parseInt((String) entry.getValue());
             if (idStation != 0) {
-                stations.add(stationDAO.getStationById(idStation));
+                stations.add(stationService.getStationById(idStation));
             }
         });
         return stations;
@@ -131,8 +132,8 @@ public class RouteController {
         final int first = 0;
         final int last = stations.size() - 1;
 
-        Station startStation = stationDAO.getStationById(stations.get(first).getId());
-        Station endStation = stationDAO.getStationById(stations.get(last).getId());
+        Station startStation = stationService.getStationById(stations.get(first).getId());
+        Station endStation = stationService.getStationById(stations.get(last).getId());
 
         route.setStartStation(startStation);
         route.setEndStation(endStation);
@@ -142,7 +143,7 @@ public class RouteController {
             Station curr = stations.get(i);
             Station next = stations.get(i + 1);
             boolean flag = false;
-            for (Arc arc : arcDAO.getAll()) {
+            for (Arc arc : arcService.getAll()) {
                 if (arc.getFromStation().equals(curr) && arc.getToStation().equals(next)) {
                     newArcs.add(arc);
                     flag = true;
@@ -153,8 +154,6 @@ public class RouteController {
                 throw new IncorrectRouteException(WRONG_ORDER + ".\t" + curr.getName() + " - " + next.getName());
             }
         }
-
-
         return newArcs;
     }
 

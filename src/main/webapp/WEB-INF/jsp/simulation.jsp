@@ -33,12 +33,13 @@
                         <th>Routing number</th>
                         <th>Move from station</th>
                         <th>Time to station</th>
-                        <th>Travel time</th>
                         <th>Passengers</th>
                         <th>Direction</th>
                     </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody>
+
+                    </tbody>
                 </table>
             </div>
         </div>

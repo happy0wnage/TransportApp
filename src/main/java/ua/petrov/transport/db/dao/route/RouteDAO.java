@@ -1,14 +1,13 @@
 package ua.petrov.transport.db.dao.route;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Route;
-import ua.petrov.transport.db.connection.MySQLConnection;
+import ua.petrov.transport.db.connection.IConnectionPool;
 import ua.petrov.transport.db.constants.DbTables.RouteFields;
-import ua.petrov.transport.db.dao.Dao;
 import ua.petrov.transport.db.dao.Extractor;
-import ua.petrov.transport.db.dao.arc.IArcDAO;
 import ua.petrov.transport.exception.DBLayerException;
 
 import java.sql.Connection;
@@ -22,13 +21,14 @@ import java.util.List;
  * Created by ��������� on 25 ��� 2015 �..
  */
 @Repository
-public class RouteDAO extends Dao implements IRouteDAO {
+public class RouteDAO implements IRouteDAO {
 
     @Autowired
     private Extractor extractor;
 
+    @Qualifier("connectionPool")
     @Autowired
-    private IArcDAO arcDAO;
+    private IConnectionPool<Connection> connectionPool;
 
     private static final String GET_ALL_ROUTES = "SELECT * FROM route;";
     private static final String GET_ARCS_BY_ID_ROUTE = "SELECT * FROM arc WHERE id_arc IN (SELECT id_arc FROM route_arc WHERE id_route = ?);";
@@ -42,9 +42,9 @@ public class RouteDAO extends Dao implements IRouteDAO {
     @Override
     public List<Route> getAll() {
         List<Route> routes = new ArrayList<>();
-        Connection con = MySQLConnection.getWebInstance();
-        try (PreparedStatement pstm = con.prepareStatement(GET_ALL_ROUTES)) {
-            ResultSet rs = pstm.executeQuery();
+        Connection con = connectionPool.get();
+        try (PreparedStatement pst = con.prepareStatement(GET_ALL_ROUTES)) {
+            ResultSet rs = pst.executeQuery();
             while (rs.next()) {
                 Route route = extractor.extractRoute(rs);
                 route.setArcList(getArcByIdRoute(route.getId()));
@@ -52,140 +52,122 @@ public class RouteDAO extends Dao implements IRouteDAO {
             }
             return routes;
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to get route" + routes, ex);
-        } finally {
-            commit(con);
         }
     }
 
     public List<Arc> getArcByIdRoute(int id) {
         List<Arc> arcs = new ArrayList<>();
-        Connection con = MySQLConnection.getWebInstance();
-        try (PreparedStatement pstm = con.prepareStatement(GET_ARCS_BY_ID_ROUTE)) {
+        Connection con = connectionPool.get();
+        try (PreparedStatement pst = con.prepareStatement(GET_ARCS_BY_ID_ROUTE)) {
             int k = 1;
-            pstm.setInt(k, id);
-            ResultSet rs = pstm.executeQuery();
+            pst.setInt(k, id);
+            ResultSet rs = pst.executeQuery();
             while (rs.next()) {
                 arcs.add(extractor.extractArc(rs));
             }
             return arcs;
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to get arcs for route" + arcs, ex);
-        } finally {
-            commit(con);
         }
     }
 
     @Override
     public Route getRouteById(int id) {
-        Connection con = MySQLConnection.getWebInstance();
-        try (PreparedStatement pstm = con.prepareStatement(GET_ROUTE_BY_ID)) {
-            pstm.setInt(1, id);
-            ResultSet rs = pstm.executeQuery();
+        Connection con = connectionPool.get();
+        try (PreparedStatement pst = con.prepareStatement(GET_ROUTE_BY_ID)) {
+            pst.setInt(1, id);
+            ResultSet rs = pst.executeQuery();
             rs.relative(1);
             Route route = extractor.extractRoute(rs);
             route.setArcList(getArcByIdRoute(route.getId()));
             return route;
 
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to get route by id=" + id, ex);
-        } finally {
-            commit(con);
         }
     }
 
     @Override
     public void add(Route route) {
-        Connection con = MySQLConnection.getWebInstance();
+        Connection con = connectionPool.get();
         try {
             String generatedColumns[] = {RouteFields.ID_ROUTE};
-            PreparedStatement pstm = con.prepareStatement(ADD_ROUTE, generatedColumns);
+            PreparedStatement pst = con.prepareStatement(ADD_ROUTE, generatedColumns);
             int k = 1;
-            pstm.setString(k++, route.getRoutingNumber());
-            pstm.setDouble(k++, route.getPrice());
-            pstm.setTime(k++, route.getDepotStopTime());
-            pstm.setTime(k++, route.getLastBusTime());
-            pstm.setTime(k++, route.getFirstBusTime());
-            pstm.setInt(k++, route.getStartStation().getId());
-            pstm.setInt(k, route.getEndStation().getId());
-            pstm.executeUpdate();
+            pst.setString(k++, route.getRoutingNumber());
+            pst.setDouble(k++, route.getPrice());
+            pst.setTime(k++, route.getDepotStopTime());
+            pst.setTime(k++, route.getLastBusTime());
+            pst.setTime(k++, route.getFirstBusTime());
+            pst.setInt(k++, route.getStartStation().getId());
+            pst.setInt(k, route.getEndStation().getId());
+            pst.executeUpdate();
 
-            ResultSet rs = pstm.getGeneratedKeys();
+            ResultSet rs = pst.getGeneratedKeys();
             rs.next();
             int idRoute = rs.getInt(1);
 
             List<Arc> arcList = route.getArcList();
             for (Arc arc : arcList) {
-                pstm = con.prepareStatement(ADD_ROUTE_ARC);
+                pst = con.prepareStatement(ADD_ROUTE_ARC);
                 k = 1;
-                pstm.setInt(k++, idRoute);
-                pstm.setInt(k, arc.getId());
-                pstm.executeUpdate();
+                pst.setInt(k++, idRoute);
+                pst.setInt(k, arc.getId());
+                pst.executeUpdate();
             }
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to add route" + route, ex);
-        } finally {
-            commit(con);
         }
     }
 
     @Override
     public void update(Route route) {
-        Connection con = MySQLConnection.getWebInstance();
+        Connection con = connectionPool.get();
         try {
-            PreparedStatement pstm = con.prepareStatement(UPDATE_ROUTE);
+            PreparedStatement pst = con.prepareStatement(UPDATE_ROUTE);
             int k = 1;
-            pstm.setString(k++, route.getRoutingNumber());
-            pstm.setDouble(k++, route.getPrice());
-            pstm.setTime(k++, route.getDepotStopTime());
-            pstm.setTime(k++, route.getLastBusTime());
-            pstm.setTime(k++, route.getFirstBusTime());
-            pstm.setInt(k++, route.getStartStation().getId());
-            pstm.setInt(k++, route.getEndStation().getId());
-            pstm.setInt(k, route.getId());
-            pstm.executeUpdate();
+            pst.setString(k++, route.getRoutingNumber());
+            pst.setDouble(k++, route.getPrice());
+            pst.setTime(k++, route.getDepotStopTime());
+            pst.setTime(k++, route.getLastBusTime());
+            pst.setTime(k++, route.getFirstBusTime());
+            pst.setInt(k++, route.getStartStation().getId());
+            pst.setInt(k++, route.getEndStation().getId());
+            pst.setInt(k, route.getId());
+            pst.executeUpdate();
 
-            pstm = con.prepareStatement(DELETE_ROUTE_ARC);
-            pstm.setInt(1, route.getId());
-            pstm.executeUpdate();
+            pst = con.prepareStatement(DELETE_ROUTE_ARC);
+            pst.setInt(1, route.getId());
+            pst.executeUpdate();
 
             List<Arc> arcList = route.getArcList();
             for (Arc arc : arcList) {
-                pstm = con.prepareStatement(ADD_ROUTE_ARC);
+                pst = con.prepareStatement(ADD_ROUTE_ARC);
                 k = 1;
-                pstm.setInt(k++, route.getId());
-                pstm.setInt(k, arc.getId());
-                pstm.executeUpdate();
+                pst.setInt(k++, route.getId());
+                pst.setInt(k, arc.getId());
+                pst.executeUpdate();
             }
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to add route" + route, ex);
-        } finally {
-            commit(con);
         }
     }
 
     @Override
     public void delete(int id) {
-        Connection con = MySQLConnection.getWebInstance();
+        Connection con = connectionPool.get();
         try {
-            PreparedStatement pstm = con.prepareStatement(DELETE_ROUTE_ARC);
-            pstm.setInt(1, id);
-            pstm.executeUpdate();
+            PreparedStatement pst = con.prepareStatement(DELETE_ROUTE_ARC);
+            pst.setInt(1, id);
+            pst.executeUpdate();
 
-            pstm = con.prepareStatement(DELETE_ROUTE);
-            pstm.setInt(1, id);
-            pstm.executeUpdate();
+            pst = con.prepareStatement(DELETE_ROUTE);
+            pst.setInt(1, id);
+            pst.executeUpdate();
 
         } catch (SQLException e) {
-            rollback(con);
             throw new DBLayerException("Failed to delete route", e);
-        } finally {
-            commit(con);
         }
     }
 }

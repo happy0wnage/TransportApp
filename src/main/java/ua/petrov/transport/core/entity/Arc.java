@@ -2,6 +2,8 @@ package ua.petrov.transport.core.entity;
 
 import ua.petrov.transport.core.JAXB.adapter.TimeAdapter;
 import ua.petrov.transport.core.util.TimeUtil;
+import ua.petrov.transport.core.validator.annotation.NotNull;
+import ua.petrov.transport.core.validator.annotation.StringNotEmpty;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -11,9 +13,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Time;
 import java.time.LocalTime;
 
-/**
- * Created by Владислав on 08.01.2016.
- */
 @XmlType(name = "arc",
         propOrder = {
                 "fromStation",
@@ -21,21 +20,22 @@ import java.time.LocalTime;
                 "travelTime",
         })
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Arc extends Entity implements Comparable<Arc>{
+public class Arc extends Entity implements Comparable<Arc> {
 
+    @NotNull
+    @StringNotEmpty
     @XmlElement(name = "station_from")
     private Station fromStation;
 
+    @NotNull
+    @StringNotEmpty
     @XmlElement(name = "station_to")
     private Station toStation;
 
+    @NotNull
     @XmlElement(name = "travel_time")
     @XmlJavaTypeAdapter(TimeAdapter.class)
-    private Time travelTime;
-
-    {
-        travelTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
-    }
+    private Time travelTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Arc() {
         super(1);
@@ -43,19 +43,6 @@ public class Arc extends Entity implements Comparable<Arc>{
 
     public Arc(int id) {
         super(id);
-    }
-
-    public Arc(Station from, Station to) {
-        super(1);
-        this.fromStation = from;
-        this.toStation = to;
-    }
-
-    public Arc(Station from, Station to, Time travelTime) {
-        super(1);
-        this.fromStation = from;
-        this.toStation = to;
-        this.travelTime = travelTime;
     }
 
     public Station getFromStation() {
@@ -91,15 +78,6 @@ public class Arc extends Entity implements Comparable<Arc>{
     }
 
     @Override
-    public String toString() {
-        return "Arc{" +
-                "fromStation=" + fromStation +
-                ", toStation=" + toStation +
-                ", travelTime=" + travelTime +
-                '}';
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -122,5 +100,14 @@ public class Arc extends Entity implements Comparable<Arc>{
     @Override
     public int compareTo(Arc o) {
         return Long.compare(getTravelTimeLong(), o.getTravelTimeLong());
+    }
+
+    @Override
+    public String toString() {
+        return "Arc{" +
+                "fromStation=" + fromStation +
+                ", toStation=" + toStation +
+                ", travelTime=" + travelTime +
+                '}';
     }
 }

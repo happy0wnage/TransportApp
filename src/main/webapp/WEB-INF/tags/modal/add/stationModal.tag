@@ -7,7 +7,7 @@
         <!-- Modal content-->
         <div class="modal-content">
             <form class="form-horizontal" name="stationForm" method="post" action="/station/add"
-                  onsubmit="return stationValidator();">
+                  onsubmit="return stationValidator(stationForm);">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                     <h4 class="modal-title">ADD STATION</h4>

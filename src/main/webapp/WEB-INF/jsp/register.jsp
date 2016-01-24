@@ -16,6 +16,14 @@
                 ${errorMessage}
         </div>
     </c:if>
+    <c:if test="${not empty validationErrors}">
+        <div class="alert alert-dismissible alert-danger">
+            <button type="button" class="close" data-dismiss="alert">x</button>
+            <c:forEach var="error" items="${validationErrors.value}">
+                ${error}
+            </c:forEach>
+        </div>
+    </c:if>
     <form class="form-horizontal" action="/user/add" method="post" onsubmit="return userValidator()">
         <fieldset>
             <legend>Register</legend>
@@ -23,21 +31,23 @@
                 <label class="col-lg-2 control-label">Login</label>
 
                 <div class="col-lg-10">
-                    <input name="inputLogin" id="inputLogin" type="text" class="form-control" placeholder="Login" autocomplete="off" >
+                    <input name="inputLogin" id="inputLogin" type="text" class="form-control" placeholder="Login"
+                           autocomplete="off">
                 </div>
             </div>
             <div class="form-group" id="passwordDiv">
                 <label class="col-lg-2 control-label">Password</label>
 
                 <div class="col-lg-10">
-                    <input name="inputPassword" id="inputPassword" type="password" class="form-control" placeholder="Password"
-                           autocomplete="off" >
+                    <input name="inputPassword" id="inputPassword" type="password" class="form-control"
+                           placeholder="Password"
+                           autocomplete="off">
                 </div>
             </div>
 
             <div class="form-group">
                 <div class="col-lg-10 col-lg-offset-2">
-                    <input type="submit" class="btn btn-primary" value="Submit"/>
+                    <input type="submit" class="btn btn-primary large" value="Submit"/>
                 </div>
             </div>
         </fieldset>
@@ -45,5 +55,6 @@
 </div>
 
 <c:remove var="errorMessage" scope="session"/>
+<c:remove var="validationErrors" scope="session"/>
 </body>
 </html>

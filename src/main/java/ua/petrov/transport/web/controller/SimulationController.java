@@ -19,10 +19,10 @@ import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.sorter.BusSorter;
 import ua.petrov.transport.db.constants.DbTables.BusFields;
 import ua.petrov.transport.db.constants.DbTables.StationFields;
-import ua.petrov.transport.db.dao.bus.IBusDAO;
-import ua.petrov.transport.db.dao.results.IResultsDAO;
-import ua.petrov.transport.db.dao.route.IRouteDAO;
-import ua.petrov.transport.db.dao.station.IStationDAO;
+import ua.petrov.transport.service.bus.IBusService;
+import ua.petrov.transport.service.results.IResultsService;
+import ua.petrov.transport.service.route.IRouteService;
+import ua.petrov.transport.service.station.IStationService;
 import ua.petrov.transport.simulation.controller.Simulation;
 import ua.petrov.transport.web.Constants;
 import ua.petrov.transport.web.Constants.Entities;
@@ -45,28 +45,28 @@ import java.util.List;
 public class SimulationController {
 
     @Autowired
-    private IBusDAO busDAO;
+    private IBusService busService;
 
     @Autowired
-    private IStationDAO stationDAO;
+    private IStationService stationService;
 
     @Autowired
-    private IRouteDAO routeDAO;
+    private IRouteService routeService;
 
     @Autowired
-    private IResultsDAO resultsDAO;
+    private IResultsService resultsService;
 
     @RequestMapping(value = Constants.VIEW, method = RequestMethod.GET)
     public ModelAndView getAll() {
 
-        List<Bus> buses = busDAO.getAll();
-        List<Route> routes = routeDAO.getAll();
+        List<Bus> buses = busService.getAll();
+        List<Route> routes = routeService.getAll();
 
         DailyFlow dailyFlow = ParserUtil.unmarshal(DailyFlow.class, ParserPath.INPUT_PASSENGERS);
         ModelAndView modelAndView = new ModelAndView(View.SIMULATION);
         modelAndView.addObject(Entities.BUS, buses);
         modelAndView.addObject(Entities.ROUTE, routes);
-        modelAndView.addObject(Entities.RESULTS, resultsDAO.getAll());
+        modelAndView.addObject(Entities.RESULTS, resultsService.getAll());
         modelAndView.addObject(Entities.DAILY_FLOW, dailyFlow.getPeriods());
 
         return modelAndView;
@@ -74,18 +74,11 @@ public class SimulationController {
 
     @RequestMapping(value = Constants.START, method = RequestMethod.GET)
     public String start(@RequestParam int speedValue, HttpServletRequest request) {
-        List<Bus> buses = busDAO.getAll();
-        List<Route> routes = routeDAO.getAll();
-        List<Station> stations = stationDAO.getAll();
-
+        List<Bus> buses = busService.getAll();
+        List<Route> routes = routeService.getAll();
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         DailyFlow dailyFlow = getFlow(modelMap);
-
-//        PassengerGenerator passengerGenerator = new PassengerGenerator(routes, stations, dailyFlow);
-//        List<Passenger> passengers = passengerGenerator.generatePassengerPerDay();
-
         HttpSession session = request.getSession();
-
         Simulation simulation = new Simulation(buses, routes, dailyFlow);
         session.setAttribute(Entities.SIMULATION_PROCESS, simulation);
         simulation.start(LocalTime.of(22, 30).toSecondOfDay(), speedValue);
@@ -125,8 +118,8 @@ public class SimulationController {
     private Bus getBus(ModelMap modelMap) {
         Bus bus = new Bus();
 
-        Route route = routeDAO.getRouteById(Integer.parseInt((String) modelMap.get(BusFields.ID_ROUTE)));
-        Station station = stationDAO.getStationById(Integer.parseInt((String) modelMap.get(StationFields.ID_STATION)));
+        Route route = routeService.getRouteById(Integer.parseInt((String) modelMap.get(BusFields.ID_ROUTE)));
+        Station station = stationService.getStationById(Integer.parseInt((String) modelMap.get(StationFields.ID_STATION)));
         int seat = Integer.parseInt((String) modelMap.get(BusFields.SEAT));
 
         bus.setRoute(route);
@@ -137,9 +130,9 @@ public class SimulationController {
     }
 
     private void uploadResults(ResultEvent event) {
-        resultsDAO.add(event);
+        resultsService.add(event);
         Results results = new Results();
-        results.setEventList(resultsDAO.getAll());
+        results.setEventList(resultsService.getAll());
         ParserUtil.marshal(results, ParserPath.RESULTS_XML);
     }
 

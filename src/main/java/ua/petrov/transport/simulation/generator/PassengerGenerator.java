@@ -56,7 +56,7 @@ public class PassengerGenerator {
                 flag = true;
             }
             if (period.getTimeFrom().toSecondOfDay() > modelTime || flag) {
-                double val = rand.nextGaussian() * DISPERSION + (period.getPassengersCount() * 10);
+                double val = rand.nextGaussian() * DISPERSION + (period.getPassengersCount() * 20);
                 int passengerCount = (int) Math.round(val);
                 for (int j = 0; j < passengerCount; j++) {
                     Passenger passenger = new Passenger();

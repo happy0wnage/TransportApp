@@ -2,8 +2,11 @@ package ua.petrov.transport.core.entity;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import ua.petrov.transport.core.constants.CoreConsts.Pattern;
 import ua.petrov.transport.core.entity.util.Direction;
 import ua.petrov.transport.core.util.TimeUtil;
+import ua.petrov.transport.core.validator.annotation.MatchPattern;
+import ua.petrov.transport.core.validator.annotation.NotNull;
 
 import javax.xml.bind.annotation.*;
 import java.sql.Time;
@@ -22,40 +25,41 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Bus extends Entity {
 
+    @NotNull
     @XmlElement(name = "route")
     private Route route;
 
+    @NotNull
     @XmlTransient
     private Station currentStation;
 
     @XmlElement(name = "seat")
+    @MatchPattern(pattern = Pattern.SEAT, message = "The number of seats should be in the interval  [10-35]")
     private int seat;
 
+    @NotNull
     @XmlTransient
-//    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="HH:mm:ss")
-    private Time timeToStation;
+    private Time timeToStation = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
+    @NotNull
     @XmlTransient
-    private Time travelTime;
+    private Time travelTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
+    @NotNull
     @XmlTransient
-    private Time waitingTime;
+    private Time waitingTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
+    @NotNull
     @XmlTransient
-    private List<Passenger> passengerList;
+    private List<Passenger> passengerList = new ArrayList<>();
 
+    @NotNull
     @XmlTransient
     private Direction direction;
 
+    @NotNull
     @XmlTransient
-    private Time startTime;
-
-    {
-        timeToStation = Time.valueOf(LocalTime.ofSecondOfDay(0));
-        travelTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
-        waitingTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
-        startTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
-    }
+    private Time startTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Bus() {
         super(1);
@@ -144,9 +148,6 @@ public class Bus extends Entity {
     }
 
     public List<Passenger> getPassengerList() {
-        if (passengerList == null) {
-            passengerList = new ArrayList<>();
-        }
         return passengerList;
     }
 
@@ -189,18 +190,12 @@ public class Bus extends Entity {
     }
 
     public void addToPassengerList(Passenger passenger) {
-        if (passengerList == null) {
-            passengerList = new ArrayList<>();
-        }
         passengerList.add(passenger);
     }
 
     public void removeFromPassengersList(Passenger passenger) {
-        if (passengerList != null) {
-            passengerList.remove(passenger);
-        }
+        passengerList.remove(passenger);
     }
-
 
     @Override
     public boolean equals(Object o) {

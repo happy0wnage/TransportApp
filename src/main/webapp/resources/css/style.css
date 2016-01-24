@@ -113,10 +113,6 @@ h3 {
     display: inline-block;
 }
 
-#arc_list_alert {
-    display: none;
-}
-
 #current_position {
     display: none;
 }
@@ -141,4 +137,8 @@ h3 {
     margin: auto;
     text-align: center;
     width: 100%;
+}
+
+#arc_list_alert {
+    display: none;
 }

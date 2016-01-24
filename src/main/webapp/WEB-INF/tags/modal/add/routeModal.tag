@@ -6,8 +6,8 @@
 
         <!-- Modal content-->
         <div class="modal-content">
-            <form class="form-horizontal" name="routeForm" method="post" action="/route/add"
-                  onsubmit="return routeValidator();" id="routeAddForm">
+            <form class="form-horizontal" name="routeForm${r.id}" method="post" action="/route/add"
+                  onsubmit="return routeValidator(routeForm);" id="routeAddForm">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                     <h4 class="modal-title">ADD ROUTE</h4>
@@ -58,6 +58,10 @@
                             </div>
                         </div>
                         <hr/>
+                        <div class="alert alert-dismissible alert-danger" id="arc_list_alert">
+                            <button type="button" class="close" data-dismiss="alert">x</button>
+                            You have to select at least one station
+                        </div>
                         <c:set var="idStation" value="1"/>
                         <c:forEach var="key" items="${station}">
                             <div class="form-group">

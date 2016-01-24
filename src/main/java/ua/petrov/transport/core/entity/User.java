@@ -1,13 +1,27 @@
 
 package ua.petrov.transport.core.entity;
 
+import ua.petrov.transport.core.constants.CoreConsts.Pattern;
+import ua.petrov.transport.core.validator.annotation.MatchPattern;
+import ua.petrov.transport.core.validator.annotation.NotNull;
+import ua.petrov.transport.core.validator.annotation.StringNotEmpty;
+
 /**
  * Created by Владислав on 12.01.2016.
  */
 public class User extends Entity {
 
+    private static final String LOGIN = "Incorrect login value";
+    private static final String PASSWORD = "Incorrect password value";
+
+    @NotNull
+    @StringNotEmpty
+    @MatchPattern(pattern = Pattern.STRING_VAL, message = LOGIN)
     private String login;
 
+    @NotNull
+    @StringNotEmpty
+    @MatchPattern(pattern = Pattern.PASS, message = PASSWORD)
     private String password;
 
     public String getLogin() {

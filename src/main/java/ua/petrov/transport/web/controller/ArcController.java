@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.db.constants.DbTables.ArcFields;
-import ua.petrov.transport.db.dao.arc.IArcDAO;
 import ua.petrov.transport.exception.DBLayerException;
+import ua.petrov.transport.service.arc.IArcService;
 import ua.petrov.transport.web.Constants;
 import ua.petrov.transport.web.Constants.Mapping;
 import ua.petrov.transport.web.converter.RequestConverter;
@@ -30,14 +30,14 @@ public class ArcController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArcController.class);
 
     @Autowired
-    private IArcDAO arcDAO;
+    private IArcService arcService;
 
     @RequestMapping(value = Constants.ADD, method = RequestMethod.POST)
     public String addArc(HttpServletRequest request) {
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         Arc arc = getArc(modelMap);
         try {
-            arcDAO.add(arc);
+            arcService.add(arc);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
         } finally {
@@ -48,7 +48,7 @@ public class ArcController {
     @RequestMapping(value = Constants.DELETE, method = RequestMethod.GET)
     public String deleteArc(HttpServletRequest request, @RequestParam(value = "id_arc") int id) {
         try {
-            arcDAO.delete(id);
+            arcService.delete(id);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
         } finally {
@@ -62,7 +62,7 @@ public class ArcController {
         Arc arc = getArc(modelMap);
         arc.setId(id);
         try {
-            arcDAO.update(arc);
+            arcService.update(arc);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
         } finally {

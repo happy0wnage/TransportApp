@@ -1,11 +1,11 @@
 package ua.petrov.transport.db.dao.arc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import ua.petrov.transport.core.entity.Arc;
-import ua.petrov.transport.db.connection.MySQLConnection;
+import ua.petrov.transport.db.connection.IConnectionPool;
 import ua.petrov.transport.db.constants.DbTables.ArcFields;
-import ua.petrov.transport.db.dao.Dao;
 import ua.petrov.transport.db.dao.Extractor;
 import ua.petrov.transport.exception.DBLayerException;
 
@@ -20,10 +20,14 @@ import java.util.List;
  * Created by Владислав on 25.11.2015.
  */
 @Repository
-public class ArcDAO extends Dao implements IArcDAO  {
+public class ArcDAO implements IArcDAO {
 
     @Autowired
     private Extractor extractor;
+
+    @Qualifier("connectionPool")
+    @Autowired
+    private IConnectionPool<Connection> connectionPool;
 
     private static final String GET_ALL_ARCS = "SELECT * FROM arc";
     private static final String GET_ARC_BY_ID = "SELECT * FROM arc WHERE id_arc = ?";
@@ -35,61 +39,52 @@ public class ArcDAO extends Dao implements IArcDAO  {
     @Override
     public List<Arc> getAll() {
         List<Arc> arc = new ArrayList<>();
-        Connection con = MySQLConnection.getWebInstance();
-        try (PreparedStatement pstm = con.prepareStatement(GET_ALL_ARCS)) {
-            ResultSet rs = pstm.executeQuery();
+        Connection con = connectionPool.get();
+        try (PreparedStatement pst = con.prepareStatement(GET_ALL_ARCS)) {
+            ResultSet rs = pst.executeQuery();
             while (rs.next()) {
                 arc.add(extractor.extractArc(rs));
             }
             return arc;
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to get Arcs" + arc, ex);
-        } finally {
-            commit(con);
         }
     }
 
     @Override
     public List<Arc> getArcsByStationId(int id) {
-        List<Arc> arcs = new ArrayList<>();
-        Connection con = MySQLConnection.getWebInstance();
+        Connection con = connectionPool.get();
         try (PreparedStatement pstm = con.prepareStatement(GET_ARCS_BY_ID_STATION)) {
+            List<Arc> arcs = new ArrayList<>();
             int k = 1;
             pstm.setInt(k++, id);
             pstm.setInt(k, id);
             ResultSet rs = pstm.executeQuery();
-            while(rs.next()) {
+            while (rs.next()) {
                 arcs.add(extractor.extractArc(rs));
             }
             return arcs;
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to get arc by id_station=" + id, ex);
-        } finally {
-            commit(con);
         }
     }
 
     @Override
     public Arc getArcById(int id) {
-        Connection con = MySQLConnection.getWebInstance();
+        Connection con = connectionPool.get();
         try (PreparedStatement pstm = con.prepareStatement(GET_ARC_BY_ID)) {
             pstm.setInt(1, id);
             ResultSet rs = pstm.executeQuery();
             rs.relative(1);
             return extractor.extractArc(rs);
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to get arc by id=" + id, ex);
-        } finally {
-            commit(con);
         }
     }
 
     @Override
     public int add(Arc arc) {
-        Connection con = MySQLConnection.getWebInstance();
+        Connection con = connectionPool.get();
         String generatedColumns[] = {ArcFields.ID_ARC};
         try (PreparedStatement pstm = con.prepareStatement(ADD_ARC, generatedColumns)) {
             int k = 1;
@@ -102,16 +97,13 @@ public class ArcDAO extends Dao implements IArcDAO  {
             rs.next();
             return rs.getInt(1);
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to add arc" + arc, ex);
-        } finally {
-            commit(con);
         }
     }
 
     @Override
     public void update(Arc arc) {
-        Connection con = MySQLConnection.getWebInstance();
+        Connection con = connectionPool.get();
         try (PreparedStatement pstm = con.prepareStatement(UPDATE_ARC)) {
             int k = 1;
             pstm.setInt(k++, arc.getFromStation().getId());
@@ -120,24 +112,18 @@ public class ArcDAO extends Dao implements IArcDAO  {
             pstm.setInt(k, arc.getId());
             pstm.executeUpdate();
         } catch (SQLException ex) {
-            rollback(con);
             throw new DBLayerException("Failed to update arc" + arc, ex);
-        } finally {
-            commit(con);
         }
     }
 
     @Override
     public void delete(int id) {
-        Connection con = MySQLConnection.getWebInstance();
+        Connection con = connectionPool.get();
         try (PreparedStatement pstm = con.prepareStatement(DELETE_ARC)) {
             pstm.setInt(1, id);
             pstm.executeUpdate();
         } catch (SQLException e) {
-            rollback(con);
             throw new DBLayerException("Failed to delete arc", e);
-        } finally {
-            commit(con);
         }
     }
 

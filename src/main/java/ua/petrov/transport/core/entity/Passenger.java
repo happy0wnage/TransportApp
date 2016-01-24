@@ -16,13 +16,6 @@ public class Passenger implements Comparable<Passenger>{
     public Passenger() {
     }
 
-    public Passenger(long waitingTime,  Station currentPoint, Station wishPoint, long timeOfTheDay) {
-        this.waitingTime = waitingTime;
-        this.currentStation = currentPoint;
-        this.destination = wishPoint;
-        this.timeOfTheDay = timeOfTheDay;
-    }
-
     public Station getCurrentStation() {
         return currentStation;
     }

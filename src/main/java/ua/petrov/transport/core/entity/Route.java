@@ -3,7 +3,10 @@ package ua.petrov.transport.core.entity;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ua.petrov.transport.core.JAXB.adapter.TimeAdapter;
+import ua.petrov.transport.core.constants.CoreConsts.Pattern;
 import ua.petrov.transport.core.util.TimeUtil;
+import ua.petrov.transport.core.validator.annotation.MatchPattern;
+import ua.petrov.transport.core.validator.annotation.NotNull;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -30,82 +33,65 @@ import java.util.stream.Collectors;
                 "arcList"
         })
 @XmlAccessorType(XmlAccessType.FIELD)
-public class    Route extends Entity {
+public class Route extends Entity {
 
+    private static final String PRICE_MESSAGE = "Price must be greater than 0";
+    private static final String BUS_COUNT_MESSAGE = "Bus count must be greater than 0";
+
+    @NotNull
     @XmlElement(name = "routing_number")
     private String routingNumber;
 
+    @NotNull
     @XmlElement(name = "start_station")
     private Station startStation;
 
+    @NotNull
     @XmlElement(name = "end_station")
     private Station endStation;
 
+    @MatchPattern(pattern = Pattern.PRICE, message = PRICE_MESSAGE)
     @XmlElement(name = "price")
     private double price;
 
+    @NotNull
     @XmlTransient
     private Type type;
 
+    @NotNull
     @XmlElement(name = "depot_stop_time")
     @XmlJavaTypeAdapter(TimeAdapter.class)
-    private Time depotStopTime;
+    private Time depotStopTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
+    @NotNull
     @XmlElementWrapper(name = "arcs")
     @XmlElement(name = "arc")
-    private List<Arc> arcList;
+    private List<Arc> arcList = new ArrayList<>();
 
+    @NotNull
     @XmlTransient
-    private List<Station> stations;
+    private List<Station> stations = new ArrayList<>();
 
+    @MatchPattern(pattern = Pattern.GREATER_ZERO, message = BUS_COUNT_MESSAGE)
     @XmlTransient
     private int busCount;
 
+    @NotNull
     @XmlElement(name = "last_bus_time")
     @XmlJavaTypeAdapter(TimeAdapter.class)
-    private Time lastBusTime;
+    private Time lastBusTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
+    @NotNull
     @XmlElement(name = "first_bus_time")
     @XmlJavaTypeAdapter(TimeAdapter.class)
-    private Time firstBusTime;
+    private Time firstBusTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
-    {
-        depotStopTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
-        lastBusTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
-        firstBusTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
-    }
     public Route(int id) {
         super(id);
     }
 
     public Route() {
         super(1);
-    }
-
-    public Route(String routingNumber, Station startStation, Station endStation, Time depotStopTime, List<Arc> arcList, Time firstBusTime, Time lastBusTime, double price) {
-        super(1);
-        this.routingNumber = routingNumber;
-        this.startStation = startStation;
-        this.endStation = endStation;
-        this.type = Type.DIRECT;
-        this.depotStopTime = depotStopTime;
-        this.arcList = arcList;
-        this.lastBusTime = lastBusTime;
-        this.firstBusTime = firstBusTime;
-        this.price = price;
-    }
-
-    public Route(String routingNumber, Station startStation, Time depotStopTime, List<Arc> arcList, Time firstBusTime, Time lastBusTime, double price) {
-        super(1);
-        this.routingNumber = routingNumber;
-        this.startStation = startStation;
-        this.endStation = null;
-        this.type = Type.CIRCLE;
-        this.depotStopTime = depotStopTime;
-        this.arcList = arcList;
-        this.lastBusTime = lastBusTime;
-        this.firstBusTime = firstBusTime;
-        this.price = price;
     }
 
     public int getBusCount() {
@@ -203,9 +189,6 @@ public class    Route extends Entity {
     }
 
     public List<Arc> getArcList() {
-        if (arcList == null) {
-            return new ArrayList<>();
-        }
         return arcList;
     }
 
@@ -235,7 +218,7 @@ public class    Route extends Entity {
         return new ArrayList<>(stationSet);
     }
 
-    public Arc arcBetweenTwoStations(Station from, Station to) {
+    public Arc getArcBetweenTwoStations(Station from, Station to) {
         for (Arc arc : arcList) {
             if (arc.getFromStation().equals(from) && arc.getToStation().equals(to)) {
                 return arc;

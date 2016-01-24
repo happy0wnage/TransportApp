@@ -1,8 +1,5 @@
 package ua.petrov.transport.web;
 
-/**
- * Created by Владислав on 07.01.2016.
- */
 public class Constants {
 
     public static final String REDIRECT = "redirect:";
@@ -19,8 +16,11 @@ public class Constants {
     public static final String PAUSE = "/pause";
     public static final String ADD_BUS = "/addBus";
 
-    public static String MESSAGE;
-    public static String ERROR_MESSAGE = "errorMessage";
+
+    public static class Message {
+        public static String ERROR_MESSAGE = "errorMessage";
+        public static final String VALIDATION_ERRORS = "validationErrors";
+    }
 
     public static class Mapping {
         public static final String ROUTE = "/route";
@@ -34,6 +34,7 @@ public class Constants {
         public static final String LOGIN = "/login";
         public static final String DOWNLOAD = "/download";
         public static final String RESULTS = "/results";
+        public static final String LOGS = "/logs";
     }
 
     public static class View {
@@ -57,6 +58,7 @@ public class Constants {
         public static final String RESULTS_XML = "results/results.xml";
         public static final String INPUT_PASSENGERS = "input/inputPassengers.xml";
         public static final String SECURITY_XML = "security/rules.xml";
+        public static final String LOGS = "results/log/Results.log";
     }
 
 }

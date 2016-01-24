@@ -1,7 +1,3 @@
-/**
- * Created by Владислав on 10.01.2015.
- */
-
 var timeRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
 var priceRegex = /^[\d]+(.[\d]+)?$/;
 var nameRegex = /^[^?!,*&@%^|]+$/;
@@ -12,40 +8,58 @@ function getSpeedValue() {
     document.getElementById("badge").innerHTML = value;
 };
 
-function stationValidator() {
+function stationValidator(form) {
 
-    var timeValue = document.stationForm.stop_time.value;
-    var name = document.stationForm.name.value;
+    var timeValue = $(form).find("#stop_time");
+    var name = $(form).find("#name");
 
     //name validation
-    if (name == "" || !nameRegex.test(name)) {
-        document.getElementById("name").className = "form-group has-error";
-        document.stationForm.name.focus();
+    var nameValue = $(name).find("input").val();
+    if (nameValue == "" && !nameRegex.test(nameValue)) {
+        $(name).addClass("has-error");
+        $(name).find("input").focus();
         return false;
     } else {
-        document.getElementById("name").className = "form-group";
+        $(name).removeClass("has-error");
     }
 
     //time validator
-    if (timeValue == "" || !timeRegex.test(timeValue)) {
-        document.getElementById("stop_time").className = "form-group has-error";
-        document.stationForm.stop_time.focus();
+    var stopTimeValue = $(timeValue).find("input").val();
+    if (stopTimeValue == "" && !timeRegex.test(stopTimeValue)) {
+        $(timeValue).addClass("has-error");
+        $(timeValue).find("input").focus();
         return false;
     } else {
-        document.getElementById("stop_time").className = "form-group";
+        $(timeValue).removeClass("has-error");
     }
 }
 
-function arcValidator() {
+function arcValidator(form) {
 
-    var timeValue = document.arcForm.travel_time.value;
+    var time = $(form).find("#travel_time");
+    var stationFrom = $(form).find("#stationFrom");
+    var stationTo = $(form).find("#stationTo");
 
-    if (timeValue == "" || !timeRegex.test(timeValue)) {
-        document.getElementById("travel_time").className = "form-group has-error";
-        document.arcForm.travel_time.focus();
+    var stationFromValue = $(form).find("#stationFrom").find("select option:selected").text();
+    var stationToValue = $(form).find("#stationTo").find("select option:selected").text()
+
+    if (stationFromValue === stationToValue) {
+        $(stationFrom).addClass("has-error");
+        $(stationTo).addClass("has-error");
         return false;
     } else {
-        document.getElementById("travel_time").className = "form-group";
+        $(stationFrom).removeClass("has-error");
+        $(stationTo).removeClass("has-error");
+    }
+
+    //time validator
+    var timeValue = $(time).find("input").val();
+    if (timeValue == "" && !timeRegex.test(timeValue)) {
+        $(time).addClass("has-error");
+        $(time).find("input").focus();
+        return false;
+    } else {
+        $(time).removeClass("has-error");
     }
 }
 
@@ -74,56 +88,76 @@ function userValidator() {
     }
 }
 
-function routeValidator() {
-    var routing_number = document.routeForm.routing_number.value;
-    var price = document.routeForm.price.value;
-    var first_bus_time = document.routeForm.first_bus_time.value;
-    var last_bus_time = document.routeForm.last_bus_time.value;
-    var depot_stop_time = document.routeForm.depot_stop_time.value;
+function routeValidator(form) {
+    var routing_number = $(form).find("#routing_number");
+    var price = $(form).find("#price");
+    var depot_stop_time = $(form).find("#depot_stop_time");
+    var first_bus_time = $(form).find("#first_bus_time");
+    var last_bus_time = $(form).find("#last_bus_time");
 
     //routing_number validator
-    if (routing_number == "") {
-        document.getElementById("routing_number").className = "form-group has-error";
-        document.routeForm.routing_number.focus();
+    var routingNumberValue = $(routing_number).find("input").val();
+    if (routingNumberValue == "") {
+        $(routing_number).addClass("has-error");
+        $(routing_number).find("input").focus();
         return false;
     } else {
-        document.getElementById("routing_number").className = "form-group";
+        $(routing_number).removeClass("has-error");
     }
 
     //price validation
-    if (price == "" || !priceRegex.test(price)) {
-        document.getElementById("price").className = "form-group has-error";
-        document.routeForm.price.focus();
+    var priceValue = $(price).find("input").val();
+    if (priceValue == "" && !priceRegex.test(priceValue)) {
+        $(price).addClass("has-error");
+        $(price).find("input").focus();
         return false;
     } else {
-        document.getElementById("price").className = "form-group";
+        $(price).removeClass("has-error");
     }
 
     //time validation
-    if (first_bus_time == "" || !timeRegex.test(first_bus_time)) {
-        document.getElementById("first_bus_time").className = "form-group has-error";
-        document.routeForm.first_bus_time.focus();
+    var depotStopTimeValue = $(depot_stop_time).find("input").val();
+    if (depotStopTimeValue == "" && !timeRegex.test(depotStopTimeValue)) {
+        $(depot_stop_time).addClass("has-error");
+        $(depot_stop_time).find("input").focus();
         return false;
     } else {
-        document.getElementById("first_bus_time").className = "form-group";
+        $(depot_stop_time).removeClass("has-error");
     }
 
     //time validation
-    if (last_bus_time == "" || !timeRegex.test(last_bus_time)) {
-        document.getElementById("last_bus_time").className = "form-group has-error";
-        document.routeForm.last_bus_time.focus();
+    var firstBusTimeValue = $(first_bus_time).find("input").val();
+    if (firstBusTimeValue == "" && !timeRegex.test(firstBusTimeValue)) {
+        $(first_bus_time).addClass("has-error");
+        $(first_bus_time).find("input").focus();
         return false;
     } else {
-        document.getElementById("last_bus_time").className = "form-group";
+        $(first_bus_time).removeClass("has-error");
     }
 
     //time validation
-    if (depot_stop_time == "" || !timeRegex.test(depot_stop_time)) {
-        document.getElementById("depot_stop_time").className = "form-group has-error";
-        document.routeForm.depot_stop_time.focus();
+    var lastBusTimeValue = $(last_bus_time).find("input").val();
+    if (lastBusTimeValue == "" && !timeRegex.test(lastBusTimeValue)) {
+        $(last_bus_time).addClass("has-error");
+        $(last_bus_time).find("input").focus();
         return false;
     } else {
-        document.getElementById("depot_stop_time").className = "form-group";
+        $(last_bus_time).removeClass("has-error");
+    }
+
+    //stations validator
+    var stationError = $(form).find("#arc_list_alert");
+    var n = 0;
+    $(form).find("select").each(function (i, elem) {
+        if ($(elem).val() != 0) {
+            n++;
+        }
+    });
+    if (n == 0) {
+        $(stationError).show();
+        return false;
+    } else {
+        $(stationError).hide();
     }
 
 }
@@ -189,7 +223,8 @@ $(document).ready(function () {
                 $("#stateField").html("Time: " + toHHMMSS(result[0].travelTime + result[0].startTime));
                 result.forEach(function (item) {
                     var tr = $("<tr></tr>");
-                    var td = $("<td></td>");
+                    var tdSpan = $("<td></td>");
+                    var ulEl = $("<ul></ul>");
 
                     var span = $("<span></span>");
                     $(span).attr("aria-hidden", "true");
@@ -205,9 +240,8 @@ $(document).ready(function () {
                         "<td>" + item.route.routingNumber + "</td>",
                         "<td>" + item.currentStation.name + "</td>",
                         "<td>" + toHHMMSS(item.timeToStation) + "</td>",
-                        "<td>" + toHHMMSS(item.travelTime) + "</td>",
                         "<td>" + item.passengerList.length + "</td>",
-                        td.html(span)
+                        tdSpan.html(span)
                     )
                     ;
                     $("#current_position").find("tbody").append(tr);
@@ -286,7 +320,7 @@ $(document).ready(function () {
 
 function hideArcs(name) {
     $(name).find("select").each(function (i, element) {
-        if (i!= 0) {
+        if (i != 0) {
             console.log(i);
             $(element).parent().parent().hide();
         }
@@ -301,7 +335,7 @@ function showSelect(name) {
             $(element).parent().parent().show();
             flag = false;
         }
-        if(hide) {
+        if (hide) {
             $(element).parent().parent().hide();
             $(element).find("option[value=0]").attr('selected', 'selected');
             hide = false;

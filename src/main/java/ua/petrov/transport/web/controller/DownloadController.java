@@ -28,12 +28,10 @@ public class DownloadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(DownloadController.class);
 
     @RequestMapping(value = Mapping.RESULTS, method = RequestMethod.GET)
-    public void downloadFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+     public void downloadResultsFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
         ServletContext context = request.getServletContext();
         File downloadFile = new ClassPathResource(ParserPath.RESULTS_XML).getFile();
         OutputStream outStream = null;
-
         try (FileInputStream inputStream = new FileInputStream(downloadFile)) {
             response.setContentLength((int) downloadFile.length());
             response.setContentType(context.getMimeType(ParserPath.RESULTS_XML));

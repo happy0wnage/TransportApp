@@ -3,8 +3,8 @@
 
         <!-- Modal content-->
         <div class="modal-content">
-            <form class="form-horizontal" name="stationForm" method="post" action="/station/update?id_station=${s.id}"
-                  onsubmit="return stationValidator();">
+            <form class="form-horizontal" name="stationForm${s.id}" method="post" action="/station/update?id_station=${s.id}"
+                  onsubmit="return stationValidator(stationForm${s.id});">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                     <h4 class="modal-title">UPDATE STATION</h4>

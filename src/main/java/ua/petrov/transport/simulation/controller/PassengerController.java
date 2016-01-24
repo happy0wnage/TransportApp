@@ -8,6 +8,7 @@ import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.util.RouteFactory;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,8 +65,10 @@ public class PassengerController {
             if (passengerMaxTime < busMinTime) {
                 allPassengers.remove(passenger);
                 statisticsGoAway++;
-//                LOGGER.error("!!!Не успел ни на один автобус: " + LocalTime.ofSecondOfDay(passenger.getTimeOfTheDay()) +
-//                        ". Время ожидения" + LocalTime.ofSecondOfDay(passenger.getWaitingTime()));
+                if(bus.getCurrentStation().equals(passenger.getCurrentStation())) {
+                    LOGGER.error("!!!Не успел ни на один автобус: " + passenger.getCurrentStation().getName() + "\t" + LocalTime.ofSecondOfDay(passenger.getTimeOfTheDay()) +
+                            ". Время ожидения" + LocalTime.ofSecondOfDay(passenger.getWaitingTime()));
+                }
                 continue;
             }
 

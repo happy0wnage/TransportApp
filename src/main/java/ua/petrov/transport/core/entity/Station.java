@@ -2,6 +2,8 @@ package ua.petrov.transport.core.entity;
 
 import ua.petrov.transport.core.JAXB.adapter.TimeAdapter;
 import ua.petrov.transport.core.util.TimeUtil;
+import ua.petrov.transport.core.validator.annotation.NotNull;
+import ua.petrov.transport.core.validator.annotation.StringNotEmpty;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -18,12 +20,15 @@ import java.time.LocalTime;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Station extends Entity {
 
+    @NotNull
+    @StringNotEmpty
     @XmlElement(name = "name")
     private String name;
 
+    @NotNull
     @XmlElement(name = "stop_time")
     @XmlJavaTypeAdapter(TimeAdapter.class)
-    private Time stopTime;
+    private Time stopTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Station() {
         super(1);
@@ -31,16 +36,6 @@ public class Station extends Entity {
 
     public Station(int id) {
         super(id);
-    }
-
-    public Station(String name, Time stopTime) {
-        super(1);
-        this.name = name;
-        this.stopTime = stopTime;
-    }
-
-    {
-        stopTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
     }
 
     public String getName() {

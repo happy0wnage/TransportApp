@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ua.petrov.transport.core.entity.Bus;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.db.constants.DbTables.BusFields;
-import ua.petrov.transport.db.dao.bus.IBusDAO;
 import ua.petrov.transport.exception.DBLayerException;
+import ua.petrov.transport.service.bus.IBusService;
 import ua.petrov.transport.web.Constants;
 import ua.petrov.transport.web.Constants.Mapping;
 import ua.petrov.transport.web.converter.RequestConverter;
@@ -29,7 +29,7 @@ public class BusController {
     private static final Logger LOGGER = LoggerFactory.getLogger(BusController.class);
 
     @Autowired
-    private IBusDAO busDAO;
+    private IBusService busService;
 
     @RequestMapping(value = Constants.ADD, method = RequestMethod.POST)
     public String addBus(HttpServletRequest request, @RequestParam int count) {
@@ -37,7 +37,7 @@ public class BusController {
         Bus bus = getBus(modelMap);
         try {
             for (int i = 0; i < count; i++) {
-                busDAO.add(bus);
+                busService.add(bus);
             }
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
@@ -52,7 +52,7 @@ public class BusController {
         Bus bus = getBus(modelMap);
         bus.setId(id);
         try {
-            busDAO.update(bus);
+            busService.update(bus);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
         } finally {
@@ -63,7 +63,7 @@ public class BusController {
     @RequestMapping(value = Constants.DELETE, method = RequestMethod.GET)
     public String deleteBus(HttpServletRequest request, @RequestParam(value = BusFields.ID_BUS) int id) {
         try {
-            busDAO.delete(id);
+            busService.delete(id);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
         } finally {

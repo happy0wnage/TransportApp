@@ -42,8 +42,6 @@ public class Simulation {
 
     private long modelTime;
 
-//    private List<Passenger> passengersPerDay;
-
     private PassengerController passengerController;
 
     public Simulation(List<Bus> buses, List<Route> allRoutes, DailyFlow dailyFlow) {
@@ -101,7 +99,7 @@ public class Simulation {
     private long getTimeToNextStation(Bus bus) {
         Station currentStation = bus.getCurrentStation();
         Station nextStation = bus.next(currentStation);
-        Arc arc = bus.getRoute().arcBetweenTwoStations(currentStation, nextStation);
+        Arc arc = bus.getRoute().getArcBetweenTwoStations(currentStation, nextStation);
         return arc.getTravelTimeLong();
     }
 
@@ -257,9 +255,16 @@ public class Simulation {
                 bus.setTimeToStation(timeToNextStation);
                 Station newCurrentStation = bus.next(bus.getCurrentStation());
                 Station nextStation = bus.next(newCurrentStation);
-                Arc arc = bus.getRoute().arcBetweenTwoStations(newCurrentStation, nextStation);
+                Arc arc = bus.getRoute().getArcBetweenTwoStations(newCurrentStation, nextStation);
                 bus.setCurrentStation(newCurrentStation);
                 bus.setTimeToStation(arc.getTravelTime());
+
+                if (bus.getRoute().getLastBusTimeLong() <= (bus.getTravelTimeLong() + bus.getStartTimeLong()) &&
+                        bus.getCurrentStation().equals(bus.getRoute().getEndStation())) {
+                    busesOnRoute.remove(bus);
+                    SimulationPrint.lastBus(bus);
+                    continue;
+                }
 
                 passengerController.landing(bus);
 

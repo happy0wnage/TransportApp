@@ -9,10 +9,10 @@ import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Bus;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
-import ua.petrov.transport.db.dao.arc.IArcDAO;
-import ua.petrov.transport.db.dao.bus.IBusDAO;
-import ua.petrov.transport.db.dao.route.IRouteDAO;
-import ua.petrov.transport.db.dao.station.IStationDAO;
+import ua.petrov.transport.service.arc.IArcService;
+import ua.petrov.transport.service.bus.IBusService;
+import ua.petrov.transport.service.route.IRouteService;
+import ua.petrov.transport.service.station.IStationService;
 import ua.petrov.transport.web.Constants;
 import ua.petrov.transport.web.Constants.Entities;
 import ua.petrov.transport.web.Constants.View;
@@ -26,32 +26,26 @@ import java.util.List;
 public class BasicSystemController {
 
     @Autowired
-    private IStationDAO stationDAO;
+    private IStationService stationService;
 
     @Autowired
-    private IRouteDAO routeDAO;
+    private IRouteService routeService;
 
     @Autowired
-    private IBusDAO busDAO;
+    private IBusService busService;
 
     @Autowired
-    private IArcDAO arcDAO;
+    private IArcService arcService;
 
 
     @RequestMapping(value = Constants.INDEX, method = RequestMethod.GET)
     public ModelAndView getAll() {
         ModelAndView modelAndView = new ModelAndView(View.INDEX);
 
-        List<Route> routeList = routeDAO.getAll();
-        List<Bus> busList = busDAO.getAll();
-        List<Arc> arcList = arcDAO.getAll();
-        List<Station> stationList = stationDAO.getAll();
-
-//        ShortestWay shortestWay = new ShortestWay(arcList, stationList);
-//        shortestWay.getShortestWay();
-//        Solution solution = new Solution(arcList, stationList);
-//        solution.solve();
-
+        List<Route> routeList = routeService.getAll();
+        List<Bus> busList = busService.getAll();
+        List<Arc> arcList = arcService.getAll();
+        List<Station> stationList = stationService.getAll();
         getBusCount(busList, routeList);
         modelAndView.addObject(Entities.ROUTE, routeList);
         modelAndView.addObject(Entities.BUS, busList);

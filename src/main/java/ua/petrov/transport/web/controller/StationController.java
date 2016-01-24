@@ -11,11 +11,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.db.constants.DbTables.StationFields;
-import ua.petrov.transport.db.dao.arc.IArcDAO;
-import ua.petrov.transport.db.dao.station.IStationDAO;
 import ua.petrov.transport.exception.DBLayerException;
+import ua.petrov.transport.service.arc.IArcService;
+import ua.petrov.transport.service.station.IStationService;
 import ua.petrov.transport.web.Constants;
 import ua.petrov.transport.web.Constants.Mapping;
+import ua.petrov.transport.web.Constants.Message;
 import ua.petrov.transport.web.converter.RequestConverter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,17 +36,17 @@ public class StationController {
     private static final String VALUE = "First you have to remove arc";
 
     @Autowired
-    private IStationDAO stationDAO;
+    private IStationService stationService;
 
     @Autowired
-    private IArcDAO arcDAO;
+    private IArcService arcService;
 
     @RequestMapping(value = Constants.ADD, method = RequestMethod.POST)
     public String addStation(HttpServletRequest request) {
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         Station station = getStation(modelMap);
         try {
-            stationDAO.add(station);
+            stationService.add(station);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
         } finally {
@@ -60,7 +61,7 @@ public class StationController {
         Station station = getStation(modelMap);
         station.setId(id);
         try {
-            stationDAO.update(station);
+            stationService.update(station);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
         } finally {
@@ -71,16 +72,16 @@ public class StationController {
 
     @RequestMapping(value = Constants.DELETE, method = RequestMethod.GET)
     public String deleteStation(HttpServletRequest request, HttpSession session, @RequestParam(value = StationFields.ID_STATION) int id) {
-        List<Arc> arcList = arcDAO.getArcsByStationId(id);
+        List<Arc> arcList = arcService.getArcsByStationId(id);
         if (arcList.size() == 0) {
             try {
-                stationDAO.delete(id);
+                stationService.delete(id);
             } catch (DBLayerException ex) {
                 LOGGER.error(ex.getMessage());
             }
         } else {
             LOGGER.error(VALUE);
-            session.setAttribute(Constants.ERROR_MESSAGE, VALUE);
+            session.setAttribute(Message.ERROR_MESSAGE, VALUE);
         }
         return Constants.REDIRECT + request.getHeader(Constants.REFERER);
     }

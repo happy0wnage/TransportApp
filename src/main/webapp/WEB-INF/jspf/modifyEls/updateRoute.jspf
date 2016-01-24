@@ -3,7 +3,7 @@
 
         <!-- Modal content-->
         <div class="modal-content">
-            <form class="form-horizontal" name="routeForm" method="post" action="/route/update?id_route=${r.id}" onsubmit="return routeValidator();" id="idRoute${r.id}">
+            <form class="form-horizontal" name="routeForm${r.id}" method="post" action="/route/update?id_route=${r.id}" onsubmit="return routeValidator(routeForm${r.id});" id="idRoute${r.id}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                     <h4 class="modal-title">UPDATE ROUTE</h4>
@@ -54,6 +54,10 @@
                             </div>
                         </div>
                         <hr/>
+                        <div class="alert alert-dismissible alert-danger" id="arc_list_alert">
+                            <button type="button" class="close" data-dismiss="alert">x</button>
+                            You have to select at least one station
+                        </div>
                         <c:set var="idStation" value="1"/>
                         <c:forEach var="key" items="${station}">
                             <div class="form-group">
