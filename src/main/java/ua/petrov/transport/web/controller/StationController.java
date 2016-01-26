@@ -8,8 +8,11 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Station;
+import ua.petrov.transport.core.util.CollectionUtil;
+import ua.petrov.transport.core.validator.api.IBeanValidator;
 import ua.petrov.transport.db.constants.DbTables.StationFields;
 import ua.petrov.transport.exception.DBLayerException;
 import ua.petrov.transport.service.arc.IArcService;
@@ -23,13 +26,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.sql.Time;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Владислав on 10.01.2016.
  */
 @Controller
 @RequestMapping(Mapping.STATION)
-public class StationController {
+public class StationController extends AbstractController{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StationController.class);
 
@@ -41,16 +45,31 @@ public class StationController {
     @Autowired
     private IArcService arcService;
 
+    @Autowired
+    private IBeanValidator beanValidator;
+
     @RequestMapping(value = Constants.ADD, method = RequestMethod.POST)
-    public String addStation(HttpServletRequest request) {
+    public ModelAndView addStation(HttpServletRequest request, HttpSession session) {
+        String header = getHeader(request);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
+
         Station station = getStation(modelMap);
+
+        ModelAndView modelAndView = createMaV(header);
+        Map<String, List<String>> errors = beanValidator.validateBean(station);
+
+        if (CollectionUtil.isNotEmpty(errors)) {
+            LOGGER.error(errors.toString());
+            return getModelWithErrors(errors, modelAndView, header);
+        }
+
         try {
             stationService.add(station);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
         } finally {
-            return Constants.REDIRECT + request.getHeader(Constants.REFERER);
+            return modelAndView;
         }
 
     }

@@ -42,12 +42,12 @@ public class Simulation {
 
     private long modelTime;
 
-    private PassengerController passengerController;
+    private PassengerControl passengerController;
 
     public Simulation(List<Bus> buses, List<Route> allRoutes, DailyFlow dailyFlow) {
         PassengerGenerator passengerGenerator = new PassengerGenerator(allRoutes, dailyFlow);
         List<Passenger> passengersPerDay = passengerGenerator.generatePassengerPerDay();
-        passengerController = new PassengerController(allRoutes, passengersPerDay);
+        passengerController = new PassengerControl(allRoutes, passengersPerDay);
         this.allRoutes = allRoutes;
         this.allBuses = RouteFactory.fillBuses(buses, this.allRoutes);
         initBuses();
@@ -242,7 +242,6 @@ public class Simulation {
         }
     }
 
-
     private void stationEventProcess(long modelTime) {
         List<Bus> buses = new ArrayList<>(busesOnRoute);
         for (Bus bus : buses) {
@@ -279,8 +278,8 @@ public class Simulation {
                     busesOnRoute.remove(bus);
                 } else {
                     bus.setWaitingTime(bus.getCurrentStation().getStopTime());
-                    passengerController.boarding(bus, RouteFactory.getPrices(allRoutes));
                     SimulationPrint.stationEvent(bus, nextStation);
+                    passengerController.boarding(bus, RouteFactory.getPrices(allRoutes));
                 }
 
             }

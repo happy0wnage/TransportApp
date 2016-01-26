@@ -43,7 +43,6 @@ public class UserController extends AbstractController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
     private static final String USER_IS_ALREADY_EXISTS = "User is already exists";
-    private static final String INCORRECT_LOGIN_PASSWORD_VALUE = "Incorrect login/password value";
     private static final String INPUT_LOGIN = "inputLogin";
     private static final String INPUT_PASSWORD = "inputPassword";
 

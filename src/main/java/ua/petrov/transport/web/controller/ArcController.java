@@ -24,6 +24,7 @@ import ua.petrov.transport.web.Constants.Message;
 import ua.petrov.transport.web.converter.RequestConverter;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.sql.Time;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class ArcController extends AbstractController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ArcController.class);
     private static final String ILLEGAL_TIME_FORMAT = "Illegal time format";
+    public static final String ARC_IS_ALREADY_EXISTS = "Arc is already exists";
 
     @Autowired
     private IArcService arcService;
@@ -45,7 +47,7 @@ public class ArcController extends AbstractController {
     private IBeanValidator beanValidator;
 
     @RequestMapping(value = Constants.ADD, method = RequestMethod.POST)
-    public ModelAndView addArc(HttpServletRequest request) {
+    public ModelAndView addArc(HttpServletRequest request, HttpSession session) {
         String header = getHeader(request);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         ModelAndView modelAndView = createMaV(header);
@@ -63,6 +65,11 @@ public class ArcController extends AbstractController {
             return getModelWithErrors(errors, modelAndView, header);
         }
         try {
+            if(!isArcExists(arc)) {
+                LOGGER.error(ARC_IS_ALREADY_EXISTS);
+                session.setAttribute(Message.ERROR_MESSAGE, ARC_IS_ALREADY_EXISTS);
+                return modelAndView;
+            }
             arcService.add(arc);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
@@ -70,6 +77,15 @@ public class ArcController extends AbstractController {
         } finally {
             return modelAndView;
         }
+    }
+
+    private boolean isArcExists(Arc checkArc) {
+        for (Arc arc : arcService.getAll()) {
+            if (arc.getFromStation().equals(checkArc.getFromStation()) && arc.getToStation().equals(checkArc.getToStation())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @RequestMapping(value = Constants.DELETE, method = RequestMethod.GET)

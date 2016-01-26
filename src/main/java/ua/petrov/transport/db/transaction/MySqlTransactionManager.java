@@ -30,6 +30,7 @@ public class MySqlTransactionManager implements TransactionManager {
 
         try {
             connection.commit();
+            connection.close();
         } catch (SQLException | DBLayerException e) {
             rollback(connection);
             throw new TranscationException("Transaction not committed.", e);

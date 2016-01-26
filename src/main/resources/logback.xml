@@ -35,7 +35,7 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="ua.petrov.transport.simulation.controller.PassengerController" level="all" additivity="false">
+    <logger name="ua.petrov.transport.simulation.controller.PassengerControl" level="all" additivity="false">
         <appender-ref ref="FILE" />
         <appender-ref ref="STDOUT" />
     </logger>

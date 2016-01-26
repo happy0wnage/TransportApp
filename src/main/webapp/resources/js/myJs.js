@@ -153,7 +153,7 @@ function routeValidator(form) {
             n++;
         }
     });
-    if (n == 0) {
+    if (n < 2) {
         $(stationError).show();
         return false;
     } else {

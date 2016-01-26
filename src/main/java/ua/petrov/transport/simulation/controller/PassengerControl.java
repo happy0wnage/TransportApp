@@ -8,17 +8,13 @@ import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.util.RouteFactory;
 
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by Владислав on 03.01.2016.
- */
-public class PassengerController {
+public class PassengerControl {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PassengerController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PassengerControl.class);
 
     private List<Route> routes;
 
@@ -30,7 +26,7 @@ public class PassengerController {
 
     private List<Integer> statisticsPercent;
 
-    public PassengerController(List<Route> routes, List<Passenger> passengers) {
+    public PassengerControl(List<Route> routes, List<Passenger> passengers) {
         this.routes = routes;
         this.allPassengers = passengers;
         statisticsPercent = new ArrayList<>();
@@ -65,10 +61,6 @@ public class PassengerController {
             if (passengerMaxTime < busMinTime) {
                 allPassengers.remove(passenger);
                 statisticsGoAway++;
-                if(bus.getCurrentStation().equals(passenger.getCurrentStation())) {
-                    LOGGER.error("!!!Не успел ни на один автобус: " + passenger.getCurrentStation().getName() + "\t" + LocalTime.ofSecondOfDay(passenger.getTimeOfTheDay()) +
-                            ". Время ожидения" + LocalTime.ofSecondOfDay(passenger.getWaitingTime()));
-                }
                 continue;
             }
 
@@ -78,17 +70,13 @@ public class PassengerController {
                 Station destination = passenger.getDestination();
 
                 if (RouteFactory.routesByTwoStations(routes, currentStation, destination, bus.getDirection()).contains(route)) {
-                    if(isPassengerReady(passenger, bus, busMaxTime, prices)) {
+                    if (isPassengerReady(passenger, bus, busMaxTime, prices)) {
                         bus.addToPassengerList(passenger);
                         allPassengers.remove(passenger);
                         amountOfPassengers++;
                     } else {
                         passenger.setWaitingTime(passengerMaxTime - busMaxTime);
-//                        LOGGER.error("Подождет другого автобуса: " + LocalTime.ofSecondOfDay(passenger.getTimeOfTheDay()) +
-//                                ". Время ожидения" + LocalTime.ofSecondOfDay(passenger.getWaitingTime()));
                     }
-                } else {
-//                    LOGGER.error("Нет подходящих автобусов без пересадок");
                 }
             }
         }

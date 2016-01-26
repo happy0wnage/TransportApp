@@ -68,17 +68,14 @@ public class SimulationController extends AbstractController {
 
     @RequestMapping(value = Constants.VIEW, method = RequestMethod.GET)
     public ModelAndView getAll() {
-
         List<Bus> buses = busService.getAll();
         List<Route> routes = routeService.getAll();
-
         DailyFlow dailyFlow = ParserUtil.unmarshal(DailyFlow.class, ParserPath.INPUT_PASSENGERS);
         ModelAndView modelAndView = new ModelAndView(View.SIMULATION);
         modelAndView.addObject(Entities.BUS, buses);
         modelAndView.addObject(Entities.ROUTE, routes);
         modelAndView.addObject(Entities.RESULTS, resultsService.getAll());
         modelAndView.addObject(Entities.DAILY_FLOW, dailyFlow.getPeriods());
-
         return modelAndView;
     }
 

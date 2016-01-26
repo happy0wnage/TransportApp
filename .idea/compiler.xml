@@ -25,5 +25,8 @@
         <module name="transport" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="transport" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

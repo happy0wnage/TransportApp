@@ -61,7 +61,13 @@ public class RouteController extends AbstractController {
         String header = getHeader(request);
         ModelAndView modelAndView = createMaV(header);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
-        Route route = getRoute(modelMap);
+        Route route;
+        try {
+            route = getRoute(modelMap);
+        } catch (IncorrectRouteException ex) {
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
+            return modelAndView;
+        }
 
         Map<String, List<String>> errors = beanValidator.validateBean(route);
         if (CollectionUtil.isNotEmpty(errors)) {
@@ -104,9 +110,9 @@ public class RouteController extends AbstractController {
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
             session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
-        } finally {
-            return modelAndView;
         }
+
+        return modelAndView;
     }
 
     @RequestMapping(value = Constants.DELETE, method = RequestMethod.GET)
@@ -124,7 +130,7 @@ public class RouteController extends AbstractController {
         return Constants.REDIRECT + request.getHeader(Constants.REFERER);
     }
 
-    private Route getRoute(ModelMap modelMap) throws IncorrectRouteException {
+    private Route getRoute(ModelMap modelMap) {
         Route route = new Route();
 
         String routingNumber = (String) modelMap.get(RouteFields.ROUTING_NUMBER);
@@ -133,13 +139,7 @@ public class RouteController extends AbstractController {
         Time lastBusTime = Time.valueOf((String) modelMap.get(RouteFields.LAST_BUS_TIME));
         Time firstBusTime = Time.valueOf((String) modelMap.get(RouteFields.FIRST_BUS_TIME));
 
-        List<Arc> arcList;
-        try {
-            arcList = getConfiguredArcs(modelMap, route);
-        } catch (IncorrectRouteException ex) {
-            LOGGER.error(ex.getMessage());
-            return null;
-        }
+        List<Arc> arcList = getConfiguredArcs(modelMap, route);
         route.setArcList(arcList);
 
         route.setRoutingNumber(routingNumber);
@@ -164,6 +164,9 @@ public class RouteController extends AbstractController {
 
     private List<Arc> getConfiguredArcs(ModelMap modelMap, Route route) {
         List<Station> stations = getStations(modelMap);
+        if(stations.size() < 2) {
+            throw new IncorrectRouteException("You have to choice at least two stations");
+        }
         List<Arc> newArcs = new ArrayList<>();
 
         final int first = 0;
