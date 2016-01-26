@@ -3,9 +3,6 @@ package ua.petrov.transport.core.util;
 import java.sql.Time;
 import java.time.LocalTime;
 
-/**
- * Created by Владислав on 17.01.2016.
- */
 public class TimeUtil {
 
     public static Time getSqlTime(long time) {

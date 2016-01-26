@@ -1,24 +1,16 @@
 
 package ua.petrov.transport.core.entity;
 
+import ua.petrov.transport.core.constants.CoreConsts.ErrorMsg;
 import ua.petrov.transport.core.constants.CoreConsts.Pattern;
 import ua.petrov.transport.core.validator.annotation.MatchPattern;
-import ua.petrov.transport.core.validator.annotation.NotNull;
-import ua.petrov.transport.core.validator.annotation.StringNotEmpty;
 
 public class User extends Entity implements ViewBean {
 
-    private static final String LOGIN = "Incorrect login value";
-    private static final String PASSWORD = "Incorrect password value";
-
-    @NotNull
-    @StringNotEmpty
-    @MatchPattern(pattern = Pattern.STRING_VAL, message = LOGIN)
+    @MatchPattern(pattern = Pattern.STRING_VAL, message = ErrorMsg.LOGIN)
     private String login;
 
-    @NotNull
-    @StringNotEmpty
-    @MatchPattern(pattern = Pattern.PASS, message = PASSWORD)
+    @MatchPattern(pattern = Pattern.PASS, message = ErrorMsg.PASSWORD)
     private String password;
 
     public String getLogin() {

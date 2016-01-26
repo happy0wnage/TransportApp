@@ -44,7 +44,7 @@ public class SimulationPrint {
                 "]===[" + bus.getCurrentStation().getName().toUpperCase() + "]============Time: [" +
                 TimeUtil.getSqlTime(bus.getTravelTimeLong() + bus.getStartTimeLong()) + "]");
         LOGGER.info("Bus will wait for:     " + TimeUtil.getSqlTime(bus.getWaitingTimeLong()) + " minutes");
-        LOGGER.info("Time to getNext station:  " + TimeUtil.getSqlTime(bus.getTimeToStationLong()));
+        LOGGER.info("Time to Next station:  " + TimeUtil.getSqlTime(bus.getTimeToStationLong()));
         LOGGER.info("Next station:          " + nextStation.getName().toUpperCase());
         LOGGER.info(getDirection(bus.getDirection()));
         LOGGER.info("In the bus:            " + bus.getPassengerList().size());

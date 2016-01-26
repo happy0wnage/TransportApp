@@ -19,11 +19,13 @@
     <c:if test="${not empty validationErrors}">
         <div class="alert alert-dismissible alert-danger">
             <button type="button" class="close" data-dismiss="alert">x</button>
-            <c:forEach var="error" items="${validationErrors.value}">
-                ${error}
+            <c:forEach var="err" items="${validationErrors}">
+                ${err}
+                <br/>
             </c:forEach>
         </div>
     </c:if>
+
     <form class="form-horizontal" action="/user/add" method="post" onsubmit="return userValidator()">
         <fieldset>
             <legend>Register</legend>

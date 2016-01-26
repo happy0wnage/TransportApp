@@ -1,8 +1,5 @@
 package ua.petrov.transport.core.entity.util;
 
-/**
- * Created by Владислав on 06.12.2015.
- */
 public enum Direction {
 
     STRAIGHT, BACK;

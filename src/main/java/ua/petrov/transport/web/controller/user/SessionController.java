@@ -65,33 +65,26 @@ public class SessionController extends AbstractController {
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         User userBean = getUser(modelMap);
         Map<String, List<String>> errors = beanValidator.validateBean(userBean);
+        ModelAndView modelAndView = createMaV(header);
 
-        ModelAndView modelAndView = createMaV();
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.debug(errors.toString() + " occurred while login.");
-            return getModelWithErrors(errors, modelAndView, header);
+            return getModelWithErrors(errors, modelAndView, session, header);
         }
 
         try {
-            checkUserInDb(userBean, session);
+            User user = userService.getUserByLogin(userBean.getLogin());
+            if (user.getPassword().equals(userBean.getPassword())) {
+                session.setAttribute(Entities.LOGGED_USER, userBean);
+                LOGGER.info("User [" + userBean.getLogin() + "] is logged in!");
+            } else {
+                session.setAttribute(Message.ERROR_MESSAGE, INCORRECT_LOGIN_PASSWORD_VALUE);
+            }
         } catch (DBLayerException ex) {
-            session.setAttribute(Message.ERROR_MESSAGE, INCORRECT_LOGIN_PASSWORD_VALUE);
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
             LOGGER.error(ex.getMessage());
         }
-        modelAndView.setViewName(header);
         return modelAndView;
-    }
-
-    private boolean checkUserInDb(User checkedUser, HttpSession session) {
-        User user = userService.getUserByLogin(checkedUser.getLogin());
-        if (user.getPassword().equals(checkedUser.getPassword())) {
-            session.setAttribute(Entities.LOGGED_USER, user);
-            LOGGER.info("User [" + user.getLogin() + "] is logged in!");
-            return true;
-        } else {
-            session.setAttribute(Message.ERROR_MESSAGE, INCORRECT_LOGIN_PASSWORD_VALUE);
-            return false;
-        }
     }
 
     private User getUser(ModelMap modelMap) {

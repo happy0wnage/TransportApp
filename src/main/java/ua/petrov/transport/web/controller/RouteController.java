@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import ua.petrov.transport.core.constants.CoreConsts.ErrorMsg;
+import ua.petrov.transport.core.constants.CoreConsts.Pattern;
 import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
@@ -17,6 +19,7 @@ import ua.petrov.transport.core.validator.api.IBeanValidator;
 import ua.petrov.transport.db.constants.DbTables.RouteFields;
 import ua.petrov.transport.exception.DBLayerException;
 import ua.petrov.transport.exception.IncorrectRouteException;
+import ua.petrov.transport.exception.ValidateException;
 import ua.petrov.transport.service.arc.IArcService;
 import ua.petrov.transport.service.route.IRouteService;
 import ua.petrov.transport.service.station.IStationService;
@@ -64,7 +67,7 @@ public class RouteController extends AbstractController {
         Route route;
         try {
             route = getRoute(modelMap);
-        } catch (IncorrectRouteException ex) {
+        } catch (IncorrectRouteException | ValidateException ex) {
             session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
             return modelAndView;
         }
@@ -72,7 +75,7 @@ public class RouteController extends AbstractController {
         Map<String, List<String>> errors = beanValidator.validateBean(route);
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.error(errors.toString());
-            return getModelWithErrors(errors, modelAndView, header);
+            return getModelWithErrors(errors, modelAndView, session, header);
         }
 
         try {
@@ -80,9 +83,8 @@ public class RouteController extends AbstractController {
         } catch (DBLayerException | IncorrectRouteException ex) {
             LOGGER.error(ex.getMessage());
             session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
-        } finally {
-            return modelAndView;
         }
+        return modelAndView;
     }
 
     @RequestMapping(value = Constants.UPDATE, method = RequestMethod.POST)
@@ -102,7 +104,7 @@ public class RouteController extends AbstractController {
         Map<String, List<String>> errors = beanValidator.validateBean(route);
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.error(errors.toString());
-            return getModelWithErrors(errors, modelAndView, header);
+            return getModelWithErrors(errors, modelAndView, session, header);
         }
         try {
             route.setId(id);
@@ -134,16 +136,33 @@ public class RouteController extends AbstractController {
         Route route = new Route();
 
         String routingNumber = (String) modelMap.get(RouteFields.ROUTING_NUMBER);
-        double price = Double.parseDouble((String) modelMap.get(RouteFields.PRICE));
-        Time depotStopTime = Time.valueOf((String) modelMap.get(RouteFields.DEPOT_STOP_TIME));
-        Time lastBusTime = Time.valueOf((String) modelMap.get(RouteFields.LAST_BUS_TIME));
-        Time firstBusTime = Time.valueOf((String) modelMap.get(RouteFields.FIRST_BUS_TIME));
+        String price = (String) modelMap.get(RouteFields.PRICE);
+
+        double p;
+        if (price.matches(Pattern.PRICE)) {
+            p = Double.parseDouble((String) modelMap.get(RouteFields.PRICE));
+        } else {
+            throw new ValidateException(ErrorMsg.PRICE_MESSAGE);
+        }
+
+        String depotStop = (String) modelMap.get(RouteFields.DEPOT_STOP_TIME);
+        String lastBus = (String) modelMap.get(RouteFields.LAST_BUS_TIME);
+        String firstBus = (String) modelMap.get(RouteFields.FIRST_BUS_TIME);
+
+        Time depotStopTime, lastBusTime, firstBusTime;
+        try {
+            depotStopTime = Time.valueOf(depotStop);
+            lastBusTime = Time.valueOf(lastBus);
+            firstBusTime = Time.valueOf(firstBus);
+        } catch (Exception ex) {
+            throw new ValidateException(ErrorMsg.ILLEGAL_TIME);
+        }
 
         List<Arc> arcList = getConfiguredArcs(modelMap, route);
         route.setArcList(arcList);
 
         route.setRoutingNumber(routingNumber);
-        route.setPrice(price);
+        route.setPrice(p);
         route.setDepotStopTime(depotStopTime);
         route.setLastBusTime(lastBusTime);
         route.setFirstBusTime(firstBusTime);
@@ -164,7 +183,7 @@ public class RouteController extends AbstractController {
 
     private List<Arc> getConfiguredArcs(ModelMap modelMap, Route route) {
         List<Station> stations = getStations(modelMap);
-        if(stations.size() < 2) {
+        if (stations.size() < 2) {
             throw new IncorrectRouteException("You have to choice at least two stations");
         }
         List<Arc> newArcs = new ArrayList<>();

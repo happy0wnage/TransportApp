@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import ua.petrov.transport.core.constants.CoreConsts.ErrorMsg;
 import ua.petrov.transport.core.entity.Arc;
+import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.util.CollectionUtil;
 import ua.petrov.transport.core.util.TimeUtil;
@@ -18,6 +20,7 @@ import ua.petrov.transport.db.constants.DbTables.ArcFields;
 import ua.petrov.transport.exception.DBLayerException;
 import ua.petrov.transport.exception.ValidateException;
 import ua.petrov.transport.service.arc.IArcService;
+import ua.petrov.transport.service.route.IRouteService;
 import ua.petrov.transport.web.Constants;
 import ua.petrov.transport.web.Constants.Mapping;
 import ua.petrov.transport.web.Constants.Message;
@@ -37,11 +40,14 @@ import java.util.Map;
 public class ArcController extends AbstractController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ArcController.class);
-    private static final String ILLEGAL_TIME_FORMAT = "Illegal time format";
     public static final String ARC_IS_ALREADY_EXISTS = "Arc is already exists";
+    private static final String FIRST_REMOVE_THE_ROUTES = "First, remove the routes";
 
     @Autowired
     private IArcService arcService;
+
+    @Autowired
+    private IRouteService routeService;
 
     @Autowired
     private IBeanValidator beanValidator;
@@ -51,21 +57,22 @@ public class ArcController extends AbstractController {
         String header = getHeader(request);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         ModelAndView modelAndView = createMaV(header);
+
         Arc arc;
         try {
             arc = getArc(modelMap);
         } catch (ValidateException ex) {
-            modelAndView.addObject(Message.VALIDATION_ERRORS, ex.getMessage());
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
             return modelAndView;
         }
-        Map<String, List<String>> errors = beanValidator.validateBean(arc);
 
+        Map<String, List<String>> errors = beanValidator.validateBean(arc);
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.error(errors.toString());
-            return getModelWithErrors(errors, modelAndView, header);
+            return getModelWithErrors(errors, modelAndView, session, header);
         }
         try {
-            if(!isArcExists(arc)) {
+            if (isArcExists(arc)) {
                 LOGGER.error(ARC_IS_ALREADY_EXISTS);
                 session.setAttribute(Message.ERROR_MESSAGE, ARC_IS_ALREADY_EXISTS);
                 return modelAndView;
@@ -73,15 +80,16 @@ public class ArcController extends AbstractController {
             arcService.add(arc);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
-            setErrorToModel(ex.getMessage(), modelAndView);
-        } finally {
-            return modelAndView;
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
         }
+
+        return modelAndView;
     }
 
     private boolean isArcExists(Arc checkArc) {
         for (Arc arc : arcService.getAll()) {
-            if (arc.getFromStation().equals(checkArc.getFromStation()) && arc.getToStation().equals(checkArc.getToStation())) {
+            if (arc.getFromStation().getId() == checkArc.getFromStation().getId() &&
+                    arc.getToStation().getId() == checkArc.getToStation().getId()) {
                 return true;
             }
         }
@@ -89,35 +97,55 @@ public class ArcController extends AbstractController {
     }
 
     @RequestMapping(value = Constants.DELETE, method = RequestMethod.GET)
-    public String deleteArc(HttpServletRequest request, @RequestParam(value = "id_arc") int id) {
+    public String deleteArc(HttpServletRequest request, HttpSession session, @RequestParam(value = "id_arc") int id) {
+        String header = getHeader(request);
+        Arc arc = arcService.getArcById(id);
         try {
-            arcService.delete(id);
+            if (checkToDelete(arc)) {
+                arcService.delete(id);
+            } else {
+                session.setAttribute(Message.ERROR_MESSAGE, FIRST_REMOVE_THE_ROUTES);
+                return header;
+            }
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
-        } finally {
-            return Constants.REDIRECT + request.getHeader(Constants.REFERER);
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
         }
+        return header;
+    }
+
+    private boolean checkToDelete(Arc arc) {
+        List<Route> routes = routeService.getAll();
+        for (Route route : routes) {
+            if (route.getArcList().contains(arc)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @RequestMapping(value = Constants.UPDATE, method = RequestMethod.POST)
-    public ModelAndView updateArc(HttpServletRequest request, @RequestParam(name = ArcFields.ID_ARC) int id) {
+    public ModelAndView updateArc(HttpServletRequest request, HttpSession session, @RequestParam(name = ArcFields.ID_ARC) int id) {
         String header = getHeader(request);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         Arc arc = getArc(modelMap);
         Map<String, List<String>> errors = beanValidator.validateBean(arc);
         ModelAndView modelAndView = createMaV(header);
+
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.error(errors.toString() + " occurred while login.");
-            return getModelWithErrors(errors, modelAndView, header);
+            return getModelWithErrors(errors, modelAndView, session, header);
         }
+
         arc.setId(id);
         try {
             arcService.update(arc);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
-        } finally {
-            return modelAndView;
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
         }
+
+        return modelAndView;
     }
 
     private Arc getArc(ModelMap modelMap) {
@@ -131,7 +159,7 @@ public class ArcController extends AbstractController {
         if (TimeUtil.isCorrectTime(travelTime)) {
             travel = Time.valueOf(travelTime);
         } else {
-            throw new ValidateException(ILLEGAL_TIME_FORMAT);
+            throw new ValidateException(ErrorMsg.ILLEGAL_TIME);
         }
 
         Station stationFrom = new Station(idStationFrom);

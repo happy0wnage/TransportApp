@@ -18,6 +18,7 @@ import ua.petrov.transport.core.entity.Bus;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.sorter.BusSorter;
+import ua.petrov.transport.core.sorter.RouteSorter;
 import ua.petrov.transport.core.util.CollectionUtil;
 import ua.petrov.transport.core.validator.api.IBeanValidator;
 import ua.petrov.transport.db.constants.DbTables.BusFields;
@@ -33,7 +34,6 @@ import ua.petrov.transport.web.converter.RequestConverter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -70,8 +70,15 @@ public class SimulationController extends AbstractController {
     public ModelAndView getAll() {
         List<Bus> buses = busService.getAll();
         List<Route> routes = routeService.getAll();
+
         DailyFlow dailyFlow = ParserUtil.unmarshal(DailyFlow.class, ParserPath.INPUT_PASSENGERS);
         ModelAndView modelAndView = new ModelAndView(View.SIMULATION);
+
+        Route lastBusTimeRoute = Collections.max(routes, RouteSorter.SORT_BY_FINISH_TIME);
+        Route firstBusTimeRoute = Collections.min(routes, RouteSorter.SORT_BY_START_TIME);
+
+        modelAndView.addObject(Entities.START_TIME, firstBusTimeRoute.getFirstBusTimeLong());
+        modelAndView.addObject(Entities.FINISH_TIME, lastBusTimeRoute.getLastBusTimeLong());
         modelAndView.addObject(Entities.BUS, buses);
         modelAndView.addObject(Entities.ROUTE, routes);
         modelAndView.addObject(Entities.RESULTS, resultsService.getAll());
@@ -82,7 +89,7 @@ public class SimulationController extends AbstractController {
     @RequestMapping(value = Constants.START, method = RequestMethod.GET)
     public String start(@RequestParam int speedValue, HttpServletRequest request, HttpSession session) {
         String header = getHeader(request);
-
+        Route route = Collections.max(routeService.getAll(), RouteSorter.SORT_BY_FINISH_TIME);
         if (speedValue < 0) {
             session.setAttribute(Message.ERROR_MESSAGE, SPEED_MATCH);
             LOGGER.error(SPEED_MATCH);
@@ -95,7 +102,7 @@ public class SimulationController extends AbstractController {
 
             Simulation simulation = new Simulation(buses, routes, dailyFlow);
             session.setAttribute(Entities.SIMULATION_PROCESS, simulation);
-            simulation.start(LocalTime.of(22, 30).toSecondOfDay(), speedValue);
+            simulation.start(route.getLastBusTimeLong(), speedValue);
             uploadResults(simulation.getEventLogger());
         }
 
@@ -110,6 +117,14 @@ public class SimulationController extends AbstractController {
         Collections.sort(buses, BusSorter.SORT_BY_TIME_TO_STATION);
         simulation.setPauseFlag();
         return buses;
+    }
+
+    @RequestMapping(value = Constants.MODEL_TIME, method = RequestMethod.GET)
+    @ResponseBody
+    public Bus getModelTime(HttpSession session) {
+        Simulation simulation = (Simulation) session.getAttribute(Entities.SIMULATION_PROCESS);
+        Bus fasterBus = Collections.min(simulation.getBusesOnRoute(), BusSorter.SORT_BY_TIME_TO_STATION);
+        return fasterBus;
     }
 
     @RequestMapping(value = Constants.ADD_BUS, method = RequestMethod.POST)

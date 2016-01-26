@@ -12,9 +12,11 @@ import org.springframework.web.servlet.ModelAndView;
 import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.util.CollectionUtil;
+import ua.petrov.transport.core.util.TimeUtil;
 import ua.petrov.transport.core.validator.api.IBeanValidator;
 import ua.petrov.transport.db.constants.DbTables.StationFields;
 import ua.petrov.transport.exception.DBLayerException;
+import ua.petrov.transport.exception.IllegalTimeValueException;
 import ua.petrov.transport.service.arc.IArcService;
 import ua.petrov.transport.service.station.IStationService;
 import ua.petrov.transport.web.Constants;
@@ -25,6 +27,7 @@ import ua.petrov.transport.web.converter.RequestConverter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.sql.Time;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -33,11 +36,13 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping(Mapping.STATION)
-public class StationController extends AbstractController{
+public class StationController extends AbstractController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StationController.class);
 
     private static final String VALUE = "First you have to remove arc";
+    private static final String ILLEGAL_TIME_VALUE = "Illegal time value";
+    private static final String STOP_TIME_IS_TOO_BIG = "Stop time is too big. Max value - 00:02:00";
 
     @Autowired
     private IStationService stationService;
@@ -52,15 +57,21 @@ public class StationController extends AbstractController{
     public ModelAndView addStation(HttpServletRequest request, HttpSession session) {
         String header = getHeader(request);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
-
-        Station station = getStation(modelMap);
-
         ModelAndView modelAndView = createMaV(header);
+
+        Station station;
+        try {
+            station = getStation(modelMap);
+        } catch (IllegalTimeValueException ex) {
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
+            return modelAndView;
+        }
+
         Map<String, List<String>> errors = beanValidator.validateBean(station);
 
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.error(errors.toString());
-            return getModelWithErrors(errors, modelAndView, header);
+            return getModelWithErrors(errors, modelAndView, session, header);
         }
 
         try {
@@ -68,24 +79,40 @@ public class StationController extends AbstractController{
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
             session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
-        } finally {
-            return modelAndView;
         }
+        return modelAndView;
 
     }
 
     @RequestMapping(value = Constants.UPDATE, method = RequestMethod.POST)
-    public String updateStation(HttpServletRequest request, @RequestParam(name = StationFields.ID_STATION) int id) {
+    public ModelAndView updateStation(HttpServletRequest request, HttpSession session, @RequestParam(name = StationFields.ID_STATION) int id) {
+        String header = getHeader(request);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
-        Station station = getStation(modelMap);
+        ModelAndView modelAndView = createMaV(header);
+
+        Station station;
+        try {
+            station = getStation(modelMap);
+        } catch (IllegalTimeValueException ex) {
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
+            return modelAndView;
+        }
+
+        Map<String, List<String>> errors = beanValidator.validateBean(station);
+
+        if (CollectionUtil.isNotEmpty(errors)) {
+            LOGGER.error(errors.toString());
+            return getModelWithErrors(errors, modelAndView, session, header);
+        }
+
         station.setId(id);
+
         try {
             stationService.update(station);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
-        } finally {
-            return Constants.REDIRECT + request.getHeader(Constants.REFERER);
         }
+        return modelAndView;
 
     }
 
@@ -110,7 +137,16 @@ public class StationController extends AbstractController{
 
         String name = (String) modelMap.get(StationFields.NAME);
         String stopTime = (String) modelMap.get(StationFields.STOP_TIME);
-        Time stop = Time.valueOf(stopTime);
+        Time stop;
+
+        if (TimeUtil.isCorrectTime(stopTime)) {
+            stop = Time.valueOf(stopTime);
+            if (stop.after(Time.valueOf(LocalTime.of(0, 2)))) {
+                throw new IllegalTimeValueException(STOP_TIME_IS_TOO_BIG);
+            }
+        } else {
+            throw new IllegalTimeValueException(ILLEGAL_TIME_VALUE);
+        }
 
         station.setName(name);
         station.setStopTime(stop);

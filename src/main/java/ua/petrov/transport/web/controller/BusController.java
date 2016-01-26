@@ -18,9 +18,11 @@ import ua.petrov.transport.exception.DBLayerException;
 import ua.petrov.transport.service.bus.IBusService;
 import ua.petrov.transport.web.Constants;
 import ua.petrov.transport.web.Constants.Mapping;
+import ua.petrov.transport.web.Constants.Message;
 import ua.petrov.transport.web.converter.RequestConverter;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +42,7 @@ public class BusController extends AbstractController {
     private IBeanValidator beanValidator;
 
     @RequestMapping(value = Constants.ADD, method = RequestMethod.POST)
-    public ModelAndView addBus(HttpServletRequest request, @RequestParam int count) {
+    public ModelAndView addBus(HttpServletRequest request, HttpSession session, @RequestParam int count) {
         String header = getHeader(request);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         ModelAndView modelAndView = createMaV(header);
@@ -48,21 +50,21 @@ public class BusController extends AbstractController {
         Map<String, List<String>> errors = beanValidator.validateBean(bus);
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.error(errors.toString());
-            return getModelWithErrors(errors, modelAndView, header);
+            return getModelWithErrors(errors, modelAndView, session, header);
         }
         try {
             for (int i = 0; i < count; i++) {
                 busService.add(bus);
             }
         } catch (DBLayerException ex) {
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
             LOGGER.error(ex.getMessage());
-        } finally {
-            return modelAndView;
         }
+        return modelAndView;
     }
 
     @RequestMapping(value = Constants.UPDATE, method = RequestMethod.POST)
-    public ModelAndView updateBus(HttpServletRequest request, @RequestParam(name = BusFields.ID_BUS) int id) {
+    public ModelAndView updateBus(HttpServletRequest request, HttpSession session, @RequestParam(name = BusFields.ID_BUS) int id) {
         String header = getHeader(request);
         ModelAndView modelAndView = createMaV(header);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
@@ -70,7 +72,7 @@ public class BusController extends AbstractController {
         Map<String, List<String>> errors = beanValidator.validateBean(bus);
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.error(errors.toString());
-            return getModelWithErrors(errors, modelAndView, header);
+            return getModelWithErrors(errors, modelAndView, session, header);
         }
 
         bus.setId(id);
@@ -78,9 +80,9 @@ public class BusController extends AbstractController {
             busService.update(bus);
         } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
-        } finally {
-            return modelAndView;
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
         }
+        return modelAndView;
     }
 
     @RequestMapping(value = Constants.DELETE, method = RequestMethod.GET)

@@ -16,10 +16,13 @@
                 ${errorMessage}
         </div>
     </c:if>
-    <c:if test="${not empty msg}">
+    <c:if test="${not empty validationErrors}">
         <div class="alert alert-dismissible alert-danger">
             <button type="button" class="close" data-dismiss="alert">x</button>
-                ${msg}
+            <c:forEach var="err" items="${validationErrors}">
+                ${err}
+                <br/>
+            </c:forEach>
         </div>
     </c:if>
 
@@ -70,7 +73,8 @@
                         </td>
                         <c:if test="${not empty logged_user}">
                             <td>
-                                <a href="" data-target="#updateRoute${r.id}" data-toggle="modal" onclick="hideArcs('#idRoute${r.id}')">
+                                <a href="" data-target="#updateRoute${r.id}" data-toggle="modal"
+                                   onclick="hideArcs('#idRoute${r.id}')">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </a>
                                 <%@include file="/WEB-INF/jspf/modifyEls/updateRoute.jspf" %>
@@ -87,7 +91,8 @@
             </table>
 
             <c:if test="${not empty logged_user}">
-                <a href="#" onclick="hideArcs('#routeAddForm')" data-toggle="modal" data-target="#addRoute" class="btn btn-default large">Add route</a>
+                <a href="#" onclick="hideArcs('#routeAddForm')" data-toggle="modal" data-target="#addRoute"
+                   class="btn btn-default large">Add route</a>
                 <add:routeModal/>
             </c:if>
         </div>
@@ -243,6 +248,6 @@
 
 </div>
 <c:remove var="errorMessage" scope="session"/>
-<c:remove var="validationErrors"/>
+<c:remove var="validationErrors" scope="session"/>
 </body>
 </html>

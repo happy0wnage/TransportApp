@@ -13,9 +13,19 @@
     <c:if test="${not empty errorMessage}">
         <div class="alert alert-dismissible alert-danger">
             <button type="button" class="close" data-dismiss="alert">x</button>
-            ${errorMessage}
+                ${errorMessage}
         </div>
     </c:if>
+    <c:if test="${not empty validationErrors}">
+        <div class="alert alert-dismissible alert-danger">
+            <button type="button" class="close" data-dismiss="alert">x</button>
+            <c:forEach var="err" items="${validationErrors}">
+                ${err}
+                <br/>
+            </c:forEach>
+        </div>
+    </c:if>
+
     <c:if test="${not empty logged_user}">
         <div class="round">
             <button id="pauseButton" type="button" class="btn btn-warning btn-circle btn-xl block-hide"><i
@@ -24,7 +34,12 @@
                     class="glyphicon glyphicon-play"></i></button>
         </div>
         <div class="middle block-hide" id="loading">
-            <img src="/resources/image/365.gif"/>
+            <input type="hidden" value="${finishTime}" id="finishTimeLong"/>
+            <input type="hidden" value="${startTime}" id="startTimeLong"/>
+            <strong id="modelTime"></strong>
+            <div class="progress progress-striped active">
+                <div id="progressBar" class="progress-bar" style="width: 1%"></div>
+            </div>
         </div>
 
         <div class="panel panel-primary block-hide" id="current_position">
@@ -125,9 +140,11 @@
                             </tr>
                             <tr>
                                 <c:forEach var="value" items="${daily_flow}">
-                                    <td><input name="${value.id}" orient="vertical" type="range" min="1" max="50"
-                                               step="5"
-                                               value="${value.passengersCount}"></td>
+                                    <td><input name="${value.id}" orient="vertical" id="line${value.id}" type="range" min="1" max="50" step="1" value="${value.passengersCount}" onchange="getLineValue('${value.id}')">
+                                        <br/>
+                                        <strong id="lineValue${value.id}">${value.passengersCount}</strong>
+                                    </td>
+
                                 </c:forEach>
                             </tr>
                         </table>
@@ -182,5 +199,6 @@
 
 </div>
 <c:remove var="errorMessage" scope="session"/>
+<c:remove var="validationErrors" scope="session"/>
 </body>
 </html>

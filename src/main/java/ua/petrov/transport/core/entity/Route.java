@@ -3,6 +3,7 @@ package ua.petrov.transport.core.entity;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ua.petrov.transport.core.JAXB.adapter.TimeAdapter;
+import ua.petrov.transport.core.constants.CoreConsts.ErrorMsg;
 import ua.petrov.transport.core.constants.CoreConsts.Pattern;
 import ua.petrov.transport.core.util.TimeUtil;
 import ua.petrov.transport.core.validator.annotation.MatchPattern;
@@ -32,50 +33,38 @@ import java.util.stream.Collectors;
                 "lastBusTime",
                 "arcList"
         })
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Route extends Entity implements ViewBean {
 
-    private static final String PRICE_MESSAGE = "Price must be greater than 0";
-    private static final String BUS_COUNT_MESSAGE = "Bus count must be greater than 0";
-
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_ROUTING_NUMBER)
     private String routingNumber;
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_START_STATION)
     private Station startStation;
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_END_STATION)
     private Station endStation;
 
-    @MatchPattern(pattern = Pattern.PRICE, message = PRICE_MESSAGE)
+    @MatchPattern(pattern = Pattern.PRICE, message = ErrorMsg.PRICE_MESSAGE)
     private double price;
 
-    @NotNull
-    @XmlTransient
+    @NotNull(message = ErrorMsg.EMPTY_TYPE)
     private Type type;
 
-    @NotNull
-    @XmlJavaTypeAdapter(TimeAdapter.class)
+    @NotNull(message = ErrorMsg.EMPTY_STOP_TIME)
     private Time depotStopTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_ARC_LIST)
     private List<Arc> arcList = new ArrayList<>();
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_STATION_LIST)
     private List<Station> stations = new ArrayList<>();
 
-    @MatchPattern(pattern = Pattern.GREATER_ZERO, message = BUS_COUNT_MESSAGE)
-    @XmlTransient
     private int busCount;
 
-    @NotNull
-    @XmlElement(name = "last_bus_time")
-    @XmlJavaTypeAdapter(TimeAdapter.class)
+    @NotNull(message = ErrorMsg.EMPTY_LAST_BUS_TIME)
     private Time lastBusTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
-    @NotNull
-    @XmlElement(name = "first_bus_time")
-    @XmlJavaTypeAdapter(TimeAdapter.class)
+    @NotNull(message = ErrorMsg.EMPTY_FIRST_BUS_TIME)
     private Time firstBusTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Route(int id) {
@@ -86,6 +75,7 @@ public class Route extends Entity implements ViewBean {
         super(1);
     }
 
+    @XmlTransient
     public int getBusCount() {
         return busCount;
     }
@@ -102,6 +92,8 @@ public class Route extends Entity implements ViewBean {
         this.lastBusTime = TimeUtil.getSqlTime(lastBusTime);
     }
 
+    @XmlElement(name = "last_bus_time")
+    @XmlJavaTypeAdapter(TimeAdapter.class)
     public Time getLastBusTime() {
         return lastBusTime;
     }
@@ -120,6 +112,8 @@ public class Route extends Entity implements ViewBean {
         this.firstBusTime = TimeUtil.getSqlTime(firstBusTime);
     }
 
+    @XmlElement(name = "first_bus_time")
+    @XmlJavaTypeAdapter(TimeAdapter.class)
     public Time getFirstBusTime() {
         return firstBusTime;
     }
@@ -177,6 +171,7 @@ public class Route extends Entity implements ViewBean {
     }
 
     @XmlElement(name = "depot_stop_time")
+    @XmlJavaTypeAdapter(TimeAdapter.class)
     public Time getDepotStopTime() {
         return depotStopTime;
     }
@@ -195,6 +190,7 @@ public class Route extends Entity implements ViewBean {
         this.arcList = arcList;
     }
 
+    @XmlTransient
     public Type getType() {
         return type;
     }

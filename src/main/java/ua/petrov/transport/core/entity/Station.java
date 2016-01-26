@@ -1,6 +1,7 @@
 package ua.petrov.transport.core.entity;
 
 import ua.petrov.transport.core.JAXB.adapter.TimeAdapter;
+import ua.petrov.transport.core.constants.CoreConsts.ErrorMsg;
 import ua.petrov.transport.core.util.TimeUtil;
 import ua.petrov.transport.core.validator.annotation.NotNull;
 import ua.petrov.transport.core.validator.annotation.StringNotEmpty;
@@ -14,11 +15,11 @@ import java.time.LocalTime;
 @XmlType(name = "station")
 public class Station extends Entity implements ViewBean {
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_STATION_NAME)
     @StringNotEmpty
     private String name;
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_STOP_TIME)
     private Time stopTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Station() {

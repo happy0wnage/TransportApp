@@ -54,9 +54,18 @@ public class Simulation {
         LOGGER.info("-----------------------------------------[ " + LocalDateTime.now() + " ]-----------------------------------------");
     }
 
+
     private void initBuses() {
         nextBuses = new ArrayList<>(allBuses);
         busesOnRoute = new ArrayList<>();
+    }
+
+    public long getModelTime() {
+        return modelTime;
+    }
+
+    public void setModelTime(long modelTime) {
+        this.modelTime = modelTime;
     }
 
     public List<Bus> getBusesOnRoute() {

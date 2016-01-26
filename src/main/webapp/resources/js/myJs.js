@@ -1,4 +1,5 @@
 var timeRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
+var stopTimeRegex = /^(00):(0[0-1]:[0-5][0-9])|(02:00)$/;
 var priceRegex = /^[\d]+(\.[\d]{1,2})?$/;
 var nameRegex = /^[^?!,*&@%^|]+$/;
 
@@ -25,7 +26,7 @@ function stationValidator(form) {
 
     //time validator
     var stopTimeValue = $(timeValue).find("input").val();
-    if (stopTimeValue == "" || !timeRegex.test(stopTimeValue)) {
+    if (stopTimeValue == "" || !stopTimeRegex.test(stopTimeValue)) {
         $(timeValue).addClass("has-error");
         $(timeValue).find("input").focus();
         return false;
@@ -196,127 +197,157 @@ function toHHMMSS(time) {
 
 $(document).ready(function () {
 
-    $("#arcList").css({"height": "400px"});
+        $("#arcList").css({"height": "400px"});
 
-    $("#startButton").click(function () {
-        $("#pauseButton").show();
-        $("#startButton").hide();
-        $("#loading").show();
-        $("#optimization").hide();
-        $("#add_bus_process").hide();
-        $("#downloadButton").hide();
-    });
+        function viewTime() {
+            var interval = 600;
+            var finishTimeLong = $("#finishTimeLong").val();
+            var startTimeLong = $("#startTimeLong").val();
+            setInterval(function () {
+                $.ajax({
+                    type: "GET",
+                    url: "/simulation/model",
+                    success: function (result) {
+                        var value = result.travelTime + result.startTime;
+                        $("#modelTime").text(toHHMMSS(value));
+                        interval = result.timeToStation;
 
-    $("#pauseButton").click(function () {
-        $("#continueButton").show();
-        $("#pauseButton").hide();
-        $("#startButton").hide();
-        $("#loading").hide();
-        $("#add_bus_process").show();
-        $("#current_position").show();
-
-        $.ajax({
-            type: "GET",
-            url: "/simulation/pause",
-            success: function (result) {
-                $("#current_position").find("tbody").empty();
-                $("#stateField").html("Time: " + toHHMMSS(result[0].travelTime + result[0].startTime));
-                result.forEach(function (item) {
-                    var tr = $("<tr></tr>");
-                    var tdSpan = $("<td></td>");
-                    var ulEl = $("<ul></ul>");
-
-                    var span = $("<span></span>");
-                    $(span).attr("aria-hidden", "true");
-
-                    if (item.direction == "STRAIGHT") {
-                        span.addClass("glyphicon glyphicon-arrow-right");
-                    } else {
-                        span.addClass("glyphicon glyphicon-arrow-left");
-                    }
-
-                    $(tr).append(
-                        "<td>" + item.id + "</td>",
-                        "<td>" + item.route.routingNumber + "</td>",
-                        "<td>" + item.currentStation.name + "</td>",
-                        "<td>" + toHHMMSS(item.timeToStation) + "</td>",
-                        "<td>" + item.passengerList.length + "</td>",
-                        tdSpan.html(span)
-                    )
-                    ;
-                    $("#current_position").find("tbody").append(tr);
-                });
-            }
-        });
-    });
-
-    $("#continueButton").click(function () {
-        $("#pauseButton").show();
-        $("#startButton").hide();
-        $("#continueButton").hide();
-        $("#loading").show();
-        $("#add_bus_process").hide();
-        $("#current_position").hide();
-        $.ajax({
-            type: "GET",
-            url: "/simulation/pause"
-        });
-    });
-
-    $("#addBusButton").click(function (e) {
-        e.preventDefault();
-        var idRoute;
-        var idStation;
-        var seats = $("#idSeat :selected").text();
-
-        var selects = $("#selects").find("select");
-        var flag = true;
-        for (var iter = 1; iter < selects.length + 1; iter++) {
-            var select = selects[iter - 1];
-            var option = $("#route" + iter + " :selected");
-            if (option.text() != "none") {
-                flag = false;
-                idRoute = select.name;
-                idStation = option.val();
-                $(select).removeClass('has-error')
-            }
-        }
-
-        if (!flag) {
-            $.ajax(
-                {
-                    type: "POST",
-                    url: "/simulation/addBus",
-                    data: {id_route: idRoute, id_station: idStation, seat: seats},
-                    success: function (e) {
-                        $("#pauseButton").show();
-                        $("#startButton").hide();
-                        $("#loading").show();
-                        $("#optimization").hide();
-                        $("#add_bus_process").hide();
-                        $("#continueButton").hide();
-                        $("#current_position").hide();
-                        for (var iter = 1; iter < selects.length + 1; iter++) {
-                            var select = selects[iter - 1];
-                            $(select).removeClass("error");
-                            $(select).val("none")
-                            $("#route" + iter).prop("disabled", false);
-                        }
+                        var maxValue = finishTimeLong - startTimeLong;
+                        var currValue = value - startTimeLong;
+                        $("#progressBar").width((currValue * 100 / maxValue) + '%');
                     },
                     error: function (e) {
-                        alert(e.responseText);
+                        console.log(e);
                     }
+                });
+            }, interval);
+        }
 
+        $("#startButton").click(function () {
+            $("#pauseButton").show();
+            $("#startButton").hide();
+            $("#loading").show();
+            $("#optimization").hide();
+            $("#add_bus_process").hide();
+            $("#downloadButton").hide();
+            viewTime();
+        });
+
+        $("#pauseButton").click(function () {
+            $("#continueButton").show();
+            $("#pauseButton").hide();
+            $("#startButton").hide();
+            $("#loading").hide();
+            $("#add_bus_process").show();
+            $("#current_position").show();
+            $.ajax({
+                type: "GET",
+                url: "/simulation/pause",
+                success: function (result) {
+                    $("#current_position").find("tbody").empty();
+                    $("#stateField").html("Time: " + toHHMMSS(result[0].travelTime + result[0].startTime));
+                    result.forEach(function (item) {
+                        var tr = $("<tr></tr>");
+                        var tdSpan = $("<td></td>");
+
+                        var span = $("<span></span>");
+                        $(span).attr("aria-hidden", "true");
+
+                        if (item.direction == "STRAIGHT") {
+                            span.addClass("glyphicon glyphicon-arrow-right");
+                        } else {
+                            span.addClass("glyphicon glyphicon-arrow-left");
+                        }
+
+                        if(item.id == 0) {
+                            $(tr).addClass("warning");
+                        }
+                        $(tr).append(
+                            "<td>" + item.id + "</td>",
+                            "<td>" + item.route.routingNumber + "</td>",
+                            "<td>" + item.currentStation.name + "</td>",
+                            "<td>" + toHHMMSS(item.timeToStation) + "</td>",
+                            "<td>" + item.passengerList.length + "</td>",
+                            tdSpan.html(span)
+                        )
+                        ;
+                        $("#current_position").find("tbody").append(tr);
+                    });
                 }
-            );
-        } else {
+            });
+        });
+
+        $("#continueButton").click(function () {
+            $("#pauseButton").show();
+            $("#startButton").hide();
+            $("#continueButton").hide();
+            $("#loading").show();
+            $("#add_bus_process").hide();
+            $("#current_position").hide();
+            $.ajax({
+                type: "GET",
+                url: "/simulation/pause"
+            });
+            viewTime();
+
+        });
+
+        $("#addBusButton").click(function (e) {
+            e.preventDefault();
+            var idRoute;
+            var idStation;
+            var seats = $("#idSeat :selected").text();
+
+            var selects = $("#selects").find("select");
+            var flag = true;
             for (var iter = 1; iter < selects.length + 1; iter++) {
                 var select = selects[iter - 1];
-                $(select).addClass("error");
+                var option = $("#route" + iter + " :selected");
+                if (option.text() != "none") {
+                    flag = false;
+                    idRoute = select.name;
+                    idStation = option.val();
+                    $(select).removeClass('has-error')
+                }
             }
-        }
-    });
-});
+
+            if (!flag) {
+                $.ajax(
+                    {
+                        type: "POST",
+                        url: "/simulation/addBus",
+                        data: {id_route: idRoute, id_station: idStation, seat: seats},
+                        success: function (e) {
+                            $("#pauseButton").show();
+                            $("#startButton").hide();
+                            $("#loading").show();
+                            $("#optimization").hide();
+                            $("#add_bus_process").hide();
+                            $("#continueButton").hide();
+                            $("#current_position").hide();
+                            for (var iter = 1; iter < selects.length + 1; iter++) {
+                                var select = selects[iter - 1];
+                                $(select).removeClass("error");
+                                $(select).val("none")
+                                $("#route" + iter).prop("disabled", false);
+                            }
+                        },
+                        error: function (e) {
+                            alert(e.responseText);
+                        }
+
+                    }
+                );
+            } else {
+                for (var iter = 1; iter < selects.length + 1; iter++) {
+                    var select = selects[iter - 1];
+                    $(select).addClass("error");
+                }
+            }
+        });
+    }
+)
+;
 
 function hideArcs(name) {
     $(name).find("select").each(function (i, element) {
@@ -350,4 +381,9 @@ function showSelect(name) {
     });
 }
 
+
+function getLineValue(id) {
+    var value = document.getElementById("line" + id).value;
+    document.getElementById("lineValue" + id).innerHTML = value;
+}
 

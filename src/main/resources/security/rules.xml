@@ -29,6 +29,7 @@
             <url>/simulation/start</url>
             <url>/simulation/pause</url>
             <url>/simulation/addBus</url>
+            <url>/simulation/model</url>
 
             <url>/logout</url>
             <url>/download/results</url>

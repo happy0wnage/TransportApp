@@ -15,6 +15,7 @@ public class Constants {
     public static final String START = "/start";
     public static final String PAUSE = "/pause";
     public static final String ADD_BUS = "/addBus";
+    public static final String MODEL_TIME = "/model";
 
 
     public static class Message {
@@ -53,6 +54,8 @@ public class Constants {
         public static final String DAILY_FLOW = "daily_flow";
         public static final String LOGGED_USER = "logged_user";
         public static final String SIMULATION_PROCESS = "simulation_process";
+        public static final String FINISH_TIME = "finishTime";
+        public static final String START_TIME = "startTime";
     }
 
     public static class ParserPath {

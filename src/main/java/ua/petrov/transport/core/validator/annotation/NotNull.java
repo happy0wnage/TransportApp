@@ -12,4 +12,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Constraint(validatedBy = NotNullValidator.class)
 public @interface NotNull {
+
+    String message() default "Field can not be empty";
 }

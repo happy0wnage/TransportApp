@@ -61,13 +61,14 @@ public class UserController extends AbstractController {
     public ModelAndView createNew(HttpServletRequest request, HttpSession session) {
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         User user = getUser(modelMap);
+        String redirectPage = Constants.REDIRECT + Constants.INDEX;
 
         Map<String, List<String>> errors = beanValidator.validateBean(user);
         ModelAndView modelAndView = createMaV();
+
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.debug(errors.toString() + " occurred while registration.");
-            setErrorsToModel(errors, modelAndView);
-            return getModelToTheSamePage(modelAndView, request);
+            return getModelWithErrors(errors, modelAndView, session, redirectPage);
         }
 
         List<User> users = userService.getAll();
@@ -83,7 +84,7 @@ public class UserController extends AbstractController {
         } catch (DBLayerException e) {
             LOGGER.error(e.getMessage());
         }
-        modelAndView.setViewName(Constants.REDIRECT + Constants.INDEX);
+        modelAndView.setViewName(redirectPage);
         return modelAndView;
     }
 

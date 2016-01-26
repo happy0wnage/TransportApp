@@ -2,6 +2,7 @@ package ua.petrov.transport.core.entity;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import ua.petrov.transport.core.constants.CoreConsts.ErrorMsg;
 import ua.petrov.transport.core.constants.CoreConsts.Pattern;
 import ua.petrov.transport.core.entity.util.Direction;
 import ua.petrov.transport.core.util.TimeUtil;
@@ -21,30 +22,30 @@ import java.util.List;
         })
 public class Bus extends Entity implements ViewBean {
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_ROUTE)
     private Route route;
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_STATION)
     private Station currentStation;
 
-    @MatchPattern(pattern = Pattern.SEAT, message = "The number of seats should be in the interval  [10-35]")
+    @MatchPattern(pattern = Pattern.SEAT, message = ErrorMsg.SEAT_NUMBER)
     private int seat;
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_TIME_TO_STATION)
     private Time timeToStation = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_TRAVEL_TIME)
     private Time travelTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_WAITING_TIME)
     private Time waitingTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_PASSENGER)
     private List<Passenger> passengerList = new ArrayList<>();
 
     private Direction direction;
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_START_TIME)
     private Time startTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Bus() {

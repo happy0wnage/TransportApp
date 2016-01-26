@@ -1,6 +1,7 @@
 package ua.petrov.transport.core.entity;
 
 import ua.petrov.transport.core.JAXB.adapter.TimeAdapter;
+import ua.petrov.transport.core.constants.CoreConsts.ErrorMsg;
 import ua.petrov.transport.core.util.TimeUtil;
 import ua.petrov.transport.core.validator.annotation.NotNull;
 
@@ -18,13 +19,13 @@ import java.time.LocalTime;
         })
 public class Arc extends Entity implements Comparable<Arc>, ViewBean {
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_STATION)
     private Station fromStation;
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_DESTINATION)
     private Station toStation;
 
-    @NotNull
+    @NotNull(message = ErrorMsg.EMPTY_TRAVEL_TIME)
     private Time travelTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Arc() {
