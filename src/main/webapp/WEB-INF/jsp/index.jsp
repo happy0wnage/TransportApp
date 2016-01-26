@@ -16,6 +16,12 @@
                 ${errorMessage}
         </div>
     </c:if>
+    <c:if test="${not empty msg}">
+        <div class="alert alert-dismissible alert-danger">
+            <button type="button" class="close" data-dismiss="alert">x</button>
+                ${msg}
+        </div>
+    </c:if>
 
     <div class="panel panel-primary">
         <div class="panel-heading">
@@ -237,5 +243,6 @@
 
 </div>
 <c:remove var="errorMessage" scope="session"/>
+<c:remove var="validationErrors"/>
 </body>
 </html>

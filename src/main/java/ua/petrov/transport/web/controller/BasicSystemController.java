@@ -23,7 +23,7 @@ import java.util.List;
  * @author Vladyslav
  */
 @Controller
-public class BasicSystemController {
+public class BasicSystemController extends AbstractController {
 
     @Autowired
     private IStationService stationService;
@@ -40,12 +40,13 @@ public class BasicSystemController {
 
     @RequestMapping(value = Constants.INDEX, method = RequestMethod.GET)
     public ModelAndView getAll() {
-        ModelAndView modelAndView = new ModelAndView(View.INDEX);
+        ModelAndView modelAndView = createMaV(View.INDEX);
 
         List<Route> routeList = routeService.getAll();
         List<Bus> busList = busService.getAll();
         List<Arc> arcList = arcService.getAll();
         List<Station> stationList = stationService.getAll();
+
         getBusCount(busList, routeList);
         modelAndView.addObject(Entities.ROUTE, routeList);
         modelAndView.addObject(Entities.BUS, busList);

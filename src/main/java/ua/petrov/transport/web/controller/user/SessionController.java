@@ -61,7 +61,7 @@ public class SessionController extends AbstractController {
 
     @RequestMapping(value = Mapping.LOGIN, method = RequestMethod.POST)
     public ModelAndView login(HttpServletRequest request, HttpSession session) {
-        final String referer = Constants.REDIRECT + request.getHeader(Constants.REFERER);
+        String header = getHeader(request);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         User userBean = getUser(modelMap);
         Map<String, List<String>> errors = beanValidator.validateBean(userBean);
@@ -69,7 +69,7 @@ public class SessionController extends AbstractController {
         ModelAndView modelAndView = createMaV();
         if (CollectionUtil.isNotEmpty(errors)) {
             LOGGER.debug(errors.toString() + " occurred while login.");
-            return getModelWithErrors(errors, modelAndView, Message.VALIDATION_ERRORS, session, userBean, referer);
+            return getModelWithErrors(errors, modelAndView, header);
         }
 
         try {
@@ -78,7 +78,7 @@ public class SessionController extends AbstractController {
             session.setAttribute(Message.ERROR_MESSAGE, INCORRECT_LOGIN_PASSWORD_VALUE);
             LOGGER.error(ex.getMessage());
         }
-        modelAndView.setViewName(referer);
+        modelAndView.setViewName(header);
         return modelAndView;
     }
 

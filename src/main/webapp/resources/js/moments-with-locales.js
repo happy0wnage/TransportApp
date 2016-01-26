@@ -228,7 +228,7 @@
 
     // pick the locale from the array
     // try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
-    // substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
+    // substring from most specific to least, but move to the getNext array item if it's a more specific variant than the current root
     function chooseLocale(names) {
         var i = 0, j, next, locale, split;
 
@@ -243,7 +243,7 @@
                     return locale;
                 }
                 if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
-                    //the next array item is better than a shallower substring of this one
+                    //the getNext array item is better than a shallower substring of this one
                     break;
                 }
                 j--;
@@ -1131,7 +1131,7 @@
             week = defaults(w.w, 1);
 
             if (w.d != null) {
-                // weekday -- low day numbers are considered next week
+                // weekday -- low day numbers are considered getNext week
                 weekday = w.d;
                 if (weekday < dow) {
                     ++week;

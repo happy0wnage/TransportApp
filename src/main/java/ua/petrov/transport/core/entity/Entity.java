@@ -1,8 +1,5 @@
 package ua.petrov.transport.core.entity;
 
-/**
- * Created by ��������� on 25 ��� 2015 �..
- */
 public class Entity {
 
     private int id = 0;

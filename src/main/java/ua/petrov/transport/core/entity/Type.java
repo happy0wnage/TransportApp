@@ -3,9 +3,6 @@ package ua.petrov.transport.core.entity;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlType;
 
-/**
- * Created by ��������� on 23 ��� 2015 �..
- */
 @XmlType(name = "type")
 @XmlEnum
 public enum Type {

@@ -8,9 +8,12 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 import ua.petrov.transport.core.entity.Arc;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
+import ua.petrov.transport.core.util.CollectionUtil;
+import ua.petrov.transport.core.validator.api.IBeanValidator;
 import ua.petrov.transport.db.constants.DbTables.RouteFields;
 import ua.petrov.transport.exception.DBLayerException;
 import ua.petrov.transport.exception.IncorrectRouteException;
@@ -27,13 +30,14 @@ import javax.servlet.http.HttpSession;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Владислав on 10.01.2016.
  */
 @Controller
 @RequestMapping(Mapping.ROUTE)
-public class RouteController {
+public class RouteController extends AbstractController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RouteController.class);
 
@@ -49,32 +53,59 @@ public class RouteController {
     @Autowired
     private IStationService stationService;
 
+    @Autowired
+    private IBeanValidator beanValidator;
+
     @RequestMapping(value = Constants.ADD, method = RequestMethod.POST)
-    public String addRoute(HttpServletRequest request, HttpSession session) {
+    public ModelAndView addRoute(HttpServletRequest request, HttpSession session) {
+        String header = getHeader(request);
+        ModelAndView modelAndView = createMaV(header);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
+        Route route = getRoute(modelMap);
+
+        Map<String, List<String>> errors = beanValidator.validateBean(route);
+        if (CollectionUtil.isNotEmpty(errors)) {
+            LOGGER.error(errors.toString());
+            return getModelWithErrors(errors, modelAndView, header);
+        }
+
         try {
-            Route route = getRoute(modelMap);
             routeService.add(route);
         } catch (DBLayerException | IncorrectRouteException ex) {
             LOGGER.error(ex.getMessage());
             session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
         } finally {
-            return Constants.REDIRECT + request.getHeader(Constants.REFERER);
+            return modelAndView;
         }
     }
 
     @RequestMapping(value = Constants.UPDATE, method = RequestMethod.POST)
-    public String updateRoute(HttpServletRequest request, HttpSession session, @RequestParam(name = RouteFields.ID_ROUTE) int id) {
+    public ModelAndView updateRoute(HttpServletRequest request, HttpSession session, @RequestParam(name = RouteFields.ID_ROUTE) int id) {
+        String header = getHeader(request);
+        ModelAndView modelAndView = createMaV(header);
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
+
+        Route route;
         try {
-            Route route = getRoute(modelMap);
+            route = getRoute(modelMap);
+        } catch (IncorrectRouteException ex) {
+            session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
+            return modelAndView;
+        }
+
+        Map<String, List<String>> errors = beanValidator.validateBean(route);
+        if (CollectionUtil.isNotEmpty(errors)) {
+            LOGGER.error(errors.toString());
+            return getModelWithErrors(errors, modelAndView, header);
+        }
+        try {
             route.setId(id);
             routeService.update(route);
-        } catch (DBLayerException | IncorrectRouteException ex) {
+        } catch (DBLayerException ex) {
             LOGGER.error(ex.getMessage());
             session.setAttribute(Message.ERROR_MESSAGE, ex.getMessage());
         } finally {
-            return Constants.REDIRECT + request.getHeader(Constants.REFERER);
+            return modelAndView;
         }
     }
 
@@ -93,7 +124,7 @@ public class RouteController {
         return Constants.REDIRECT + request.getHeader(Constants.REFERER);
     }
 
-    private Route getRoute(ModelMap modelMap) {
+    private Route getRoute(ModelMap modelMap) throws IncorrectRouteException {
         Route route = new Route();
 
         String routingNumber = (String) modelMap.get(RouteFields.ROUTING_NUMBER);
@@ -102,7 +133,13 @@ public class RouteController {
         Time lastBusTime = Time.valueOf((String) modelMap.get(RouteFields.LAST_BUS_TIME));
         Time firstBusTime = Time.valueOf((String) modelMap.get(RouteFields.FIRST_BUS_TIME));
 
-        List<Arc> arcList = getConfiguredArcs(modelMap, route);
+        List<Arc> arcList;
+        try {
+            arcList = getConfiguredArcs(modelMap, route);
+        } catch (IncorrectRouteException ex) {
+            LOGGER.error(ex.getMessage());
+            return null;
+        }
         route.setArcList(arcList);
 
         route.setRoutingNumber(routingNumber);

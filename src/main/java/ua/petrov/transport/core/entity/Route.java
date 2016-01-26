@@ -33,25 +33,21 @@ import java.util.stream.Collectors;
                 "arcList"
         })
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Route extends Entity {
+public class Route extends Entity implements ViewBean {
 
     private static final String PRICE_MESSAGE = "Price must be greater than 0";
     private static final String BUS_COUNT_MESSAGE = "Bus count must be greater than 0";
 
     @NotNull
-    @XmlElement(name = "routing_number")
     private String routingNumber;
 
     @NotNull
-    @XmlElement(name = "start_station")
     private Station startStation;
 
     @NotNull
-    @XmlElement(name = "end_station")
     private Station endStation;
 
     @MatchPattern(pattern = Pattern.PRICE, message = PRICE_MESSAGE)
-    @XmlElement(name = "price")
     private double price;
 
     @NotNull
@@ -59,17 +55,13 @@ public class Route extends Entity {
     private Type type;
 
     @NotNull
-    @XmlElement(name = "depot_stop_time")
     @XmlJavaTypeAdapter(TimeAdapter.class)
     private Time depotStopTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     @NotNull
-    @XmlElementWrapper(name = "arcs")
-    @XmlElement(name = "arc")
     private List<Arc> arcList = new ArrayList<>();
 
     @NotNull
-    @XmlTransient
     private List<Station> stations = new ArrayList<>();
 
     @MatchPattern(pattern = Pattern.GREATER_ZERO, message = BUS_COUNT_MESSAGE)
@@ -136,6 +128,7 @@ public class Route extends Entity {
         this.firstBusTime = firstBusTime;
     }
 
+    @XmlElement(name = "price")
     public double getPrice() {
         return price;
     }
@@ -144,6 +137,7 @@ public class Route extends Entity {
         this.price = price;
     }
 
+    @XmlElement(name = "routing_number")
     public String getRoutingNumber() {
         return routingNumber;
     }
@@ -152,6 +146,7 @@ public class Route extends Entity {
         this.routingNumber = routingNumber;
     }
 
+    @XmlElement(name = "start_station")
     public Station getStartStation() {
         return startStation;
     }
@@ -160,6 +155,7 @@ public class Route extends Entity {
         this.startStation = startStation;
     }
 
+    @XmlElement(name = "end_station")
     public Station getEndStation() {
         return endStation;
     }
@@ -180,6 +176,7 @@ public class Route extends Entity {
         this.depotStopTime = TimeUtil.getSqlTime(depotStopTime);
     }
 
+    @XmlElement(name = "depot_stop_time")
     public Time getDepotStopTime() {
         return depotStopTime;
     }
@@ -188,6 +185,8 @@ public class Route extends Entity {
         this.depotStopTime = depotStopTime;
     }
 
+    @XmlElementWrapper(name = "arcs")
+    @XmlElement(name = "arc")
     public List<Arc> getArcList() {
         return arcList;
     }
@@ -212,6 +211,7 @@ public class Route extends Entity {
         this.stations = stations;
     }
 
+    @XmlTransient
     public List<Station> getStations() {
         Set<Station> stationSet = arcList.stream().map(Arc::getFromStation).collect(Collectors.toSet());
         stationSet.add(arcList.get(arcList.size() - 1).getToStation());

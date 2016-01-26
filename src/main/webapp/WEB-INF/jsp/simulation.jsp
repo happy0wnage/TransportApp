@@ -10,6 +10,12 @@
 <body>
 <div class="center">
 
+    <c:if test="${not empty errorMessage}">
+        <div class="alert alert-dismissible alert-danger">
+            <button type="button" class="close" data-dismiss="alert">x</button>
+            ${errorMessage}
+        </div>
+    </c:if>
     <c:if test="${not empty logged_user}">
         <div class="round">
             <button id="pauseButton" type="button" class="btn btn-warning btn-circle btn-xl block-hide"><i
@@ -175,6 +181,6 @@
     </c:if>
 
 </div>
-
+<c:remove var="errorMessage" scope="session"/>
 </body>
 </html>

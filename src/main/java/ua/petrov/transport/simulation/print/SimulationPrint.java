@@ -19,7 +19,7 @@ public class SimulationPrint {
     public static void newBus(Bus bus) {
         LOGGER.info("======Bus №[" + bus.getId() + "]========[" + bus.getCurrentStation().getName().toUpperCase()
                 + "]============Time: [" + TimeUtil.getSqlTime(bus.getTravelTimeLong() + bus.getStartTimeLong()) + "]");
-        LOGGER.info("Next station:          " + bus.next(bus.getCurrentStation()).getName().toUpperCase());
+        LOGGER.info("Next station:          " + bus.getNext(bus.getCurrentStation()).getName().toUpperCase());
     }
 
     public static void lastBus(Bus bus) {
@@ -34,8 +34,8 @@ public class SimulationPrint {
                 "]===Route №[" + bus.getRoute().getRoutingNumber().toUpperCase() + "]===left the depot at: " +
                 TimeUtil.getSqlTime(bus.getStartTimeLong()) +
                 " on station: " + bus.getCurrentStation().getName());
-        LOGGER.info("Time to next station:  " + TimeUtil.getSqlTime(bus.getTimeToStationLong()));
-        LOGGER.info("Next station:          " + bus.next(bus.getCurrentStation()).getName());
+        LOGGER.info("Time to getNext station:  " + TimeUtil.getSqlTime(bus.getTimeToStationLong()));
+        LOGGER.info("Next station:          " + bus.getNext(bus.getCurrentStation()).getName());
     }
 
     public static void stationEvent(Bus bus, Station nextStation) {
@@ -44,7 +44,7 @@ public class SimulationPrint {
                 "]===[" + bus.getCurrentStation().getName().toUpperCase() + "]============Time: [" +
                 TimeUtil.getSqlTime(bus.getTravelTimeLong() + bus.getStartTimeLong()) + "]");
         LOGGER.info("Bus will wait for:     " + TimeUtil.getSqlTime(bus.getWaitingTimeLong()) + " minutes");
-        LOGGER.info("Time to next station:  " + TimeUtil.getSqlTime(bus.getTimeToStationLong()));
+        LOGGER.info("Time to getNext station:  " + TimeUtil.getSqlTime(bus.getTimeToStationLong()));
         LOGGER.info("Next station:          " + nextStation.getName().toUpperCase());
         LOGGER.info(getDirection(bus.getDirection()));
         LOGGER.info("In the bus:            " + bus.getPassengerList().size());

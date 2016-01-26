@@ -98,7 +98,7 @@ public class Simulation {
 
     private long getTimeToNextStation(Bus bus) {
         Station currentStation = bus.getCurrentStation();
-        Station nextStation = bus.next(currentStation);
+        Station nextStation = bus.getNext(currentStation);
         Arc arc = bus.getRoute().getArcBetweenTwoStations(currentStation, nextStation);
         return arc.getTravelTimeLong();
     }
@@ -253,8 +253,8 @@ public class Simulation {
             if (difference == 0) {
                 long timeToNextStation = getTimeToNextStation(bus);
                 bus.setTimeToStation(timeToNextStation);
-                Station newCurrentStation = bus.next(bus.getCurrentStation());
-                Station nextStation = bus.next(newCurrentStation);
+                Station newCurrentStation = bus.getNext(bus.getCurrentStation());
+                Station nextStation = bus.getNext(newCurrentStation);
                 Arc arc = bus.getRoute().getArcBetweenTwoStations(newCurrentStation, nextStation);
                 bus.setCurrentStation(newCurrentStation);
                 bus.setTimeToStation(arc.getTravelTime());

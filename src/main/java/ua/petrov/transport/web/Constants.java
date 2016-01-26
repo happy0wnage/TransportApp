@@ -18,6 +18,7 @@ public class Constants {
 
 
     public static class Message {
+        public static String MESSAGE = "message";
         public static String ERROR_MESSAGE = "errorMessage";
         public static final String VALIDATION_ERRORS = "validationErrors";
     }

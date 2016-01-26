@@ -3,10 +3,7 @@ package ua.petrov.transport.core.entity;
 import ua.petrov.transport.core.JAXB.adapter.TimeAdapter;
 import ua.petrov.transport.core.util.TimeUtil;
 import ua.petrov.transport.core.validator.annotation.NotNull;
-import ua.petrov.transport.core.validator.annotation.StringNotEmpty;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -19,22 +16,15 @@ import java.time.LocalTime;
                 "toStation",
                 "travelTime",
         })
-@XmlAccessorType(XmlAccessType.FIELD)
-public class Arc extends Entity implements Comparable<Arc> {
+public class Arc extends Entity implements Comparable<Arc>, ViewBean {
 
     @NotNull
-    @StringNotEmpty
-    @XmlElement(name = "station_from")
     private Station fromStation;
 
     @NotNull
-    @StringNotEmpty
-    @XmlElement(name = "station_to")
     private Station toStation;
 
     @NotNull
-    @XmlElement(name = "travel_time")
-    @XmlJavaTypeAdapter(TimeAdapter.class)
     private Time travelTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Arc() {
@@ -45,6 +35,7 @@ public class Arc extends Entity implements Comparable<Arc> {
         super(id);
     }
 
+    @XmlElement(name = "station_from")
     public Station getFromStation() {
         return fromStation;
     }
@@ -53,6 +44,7 @@ public class Arc extends Entity implements Comparable<Arc> {
         this.fromStation = fromStation;
     }
 
+    @XmlElement(name = "station_to")
     public Station getToStation() {
         return toStation;
     }
@@ -61,6 +53,8 @@ public class Arc extends Entity implements Comparable<Arc> {
         this.toStation = toStation;
     }
 
+    @XmlElement(name = "travel_time")
+    @XmlJavaTypeAdapter(TimeAdapter.class)
     public Time getTravelTime() {
         return travelTime;
     }

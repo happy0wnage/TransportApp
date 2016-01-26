@@ -5,29 +5,20 @@ import ua.petrov.transport.core.util.TimeUtil;
 import ua.petrov.transport.core.validator.annotation.NotNull;
 import ua.petrov.transport.core.validator.annotation.StringNotEmpty;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Time;
 import java.time.LocalTime;
 
-/**
- * Created by Владислав on 08.01.2016.
- */
 @XmlType(name = "station")
-@XmlAccessorType(XmlAccessType.FIELD)
-public class Station extends Entity {
+public class Station extends Entity implements ViewBean {
 
     @NotNull
     @StringNotEmpty
-    @XmlElement(name = "name")
     private String name;
 
     @NotNull
-    @XmlElement(name = "stop_time")
-    @XmlJavaTypeAdapter(TimeAdapter.class)
     private Time stopTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Station() {
@@ -38,6 +29,7 @@ public class Station extends Entity {
         super(id);
     }
 
+    @XmlElement(name = "name")
     public String getName() {
         return name;
     }
@@ -54,6 +46,8 @@ public class Station extends Entity {
         return stopTime.toLocalTime().toSecondOfDay();
     }
 
+    @XmlElement(name = "stop_time")
+    @XmlJavaTypeAdapter(TimeAdapter.class)
     public Time getStopTime() {
         return stopTime;
     }

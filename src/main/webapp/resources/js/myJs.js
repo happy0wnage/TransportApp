@@ -1,5 +1,5 @@
 var timeRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
-var priceRegex = /^[\d]+(.[\d]+)?$/;
+var priceRegex = /^[\d]+(\.[\d]{1,2})?$/;
 var nameRegex = /^[^?!,*&@%^|]+$/;
 
 function getSpeedValue() {
@@ -15,7 +15,7 @@ function stationValidator(form) {
 
     //name validation
     var nameValue = $(name).find("input").val();
-    if (nameValue == "" && !nameRegex.test(nameValue)) {
+    if (nameValue == "" || !nameRegex.test(nameValue)) {
         $(name).addClass("has-error");
         $(name).find("input").focus();
         return false;
@@ -25,7 +25,7 @@ function stationValidator(form) {
 
     //time validator
     var stopTimeValue = $(timeValue).find("input").val();
-    if (stopTimeValue == "" && !timeRegex.test(stopTimeValue)) {
+    if (stopTimeValue == "" || !timeRegex.test(stopTimeValue)) {
         $(timeValue).addClass("has-error");
         $(timeValue).find("input").focus();
         return false;
@@ -54,7 +54,7 @@ function arcValidator(form) {
 
     //time validator
     var timeValue = $(time).find("input").val();
-    if (timeValue == "" && !timeRegex.test(timeValue)) {
+    if (timeValue == "" || !timeRegex.test(timeValue)) {
         $(time).addClass("has-error");
         $(time).find("input").focus();
         return false;
@@ -107,7 +107,7 @@ function routeValidator(form) {
 
     //price validation
     var priceValue = $(price).find("input").val();
-    if (priceValue == "" && !priceRegex.test(priceValue)) {
+    if (priceValue == "" || !priceRegex.test(priceValue)) {
         $(price).addClass("has-error");
         $(price).find("input").focus();
         return false;
@@ -117,7 +117,7 @@ function routeValidator(form) {
 
     //time validation
     var depotStopTimeValue = $(depot_stop_time).find("input").val();
-    if (depotStopTimeValue == "" && !timeRegex.test(depotStopTimeValue)) {
+    if (depotStopTimeValue == "" || !timeRegex.test(depotStopTimeValue)) {
         $(depot_stop_time).addClass("has-error");
         $(depot_stop_time).find("input").focus();
         return false;
@@ -127,7 +127,7 @@ function routeValidator(form) {
 
     //time validation
     var firstBusTimeValue = $(first_bus_time).find("input").val();
-    if (firstBusTimeValue == "" && !timeRegex.test(firstBusTimeValue)) {
+    if (firstBusTimeValue == "" || !timeRegex.test(firstBusTimeValue)) {
         $(first_bus_time).addClass("has-error");
         $(first_bus_time).find("input").focus();
         return false;
@@ -137,7 +137,7 @@ function routeValidator(form) {
 
     //time validation
     var lastBusTimeValue = $(last_bus_time).find("input").val();
-    if (lastBusTimeValue == "" && !timeRegex.test(lastBusTimeValue)) {
+    if (lastBusTimeValue == "" || !timeRegex.test(lastBusTimeValue)) {
         $(last_bus_time).addClass("has-error");
         $(last_bus_time).find("input").focus();
         return false;

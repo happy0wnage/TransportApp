@@ -1,9 +1,6 @@
 package ua.petrov.transport.core.entity;
 
-/**
- * Created by ��������� on 23 ��� 2015 �..
- */
-public class Passenger implements Comparable<Passenger>{
+public class Passenger implements Comparable<Passenger>, ViewBean{
 
     private long waitingTime;
 

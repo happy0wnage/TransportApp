@@ -12,7 +12,8 @@ import java.util.Map;
 /**
  * @author Vladyslav
  */
-public abstract class AbstractController<T> {
+public abstract class AbstractController {
+
     protected ModelAndView createMaV(String viewName) {
         return new ModelAndView(viewName);
     }
@@ -30,10 +31,12 @@ public abstract class AbstractController<T> {
         modelAndView.addObject(Message.VALIDATION_ERRORS, errors);
     }
 
-    protected ModelAndView getModelWithErrors(Map<String, List<String>> errors, ModelAndView modelAndView, String invalidBeanName,
-                                               HttpSession session, T bean, String url) {
+    protected void setErrorToModel(String error, ModelAndView modelAndView) {
+        modelAndView.addObject(Message.ERROR_MESSAGE, error);
+    }
+
+    protected ModelAndView getModelWithErrors(Map<String, List<String>> errors, ModelAndView modelAndView, String url) {
         setErrorsToModel(errors, modelAndView, url);
-        session.setAttribute(invalidBeanName, bean);
         return modelAndView;
     }
 
@@ -44,5 +47,8 @@ public abstract class AbstractController<T> {
 
     protected void clearSessionFromObj(HttpSession session, String beanName) {
         session.removeAttribute(beanName);
+    }
+    protected String getHeader(HttpServletRequest request) {
+        return Constants.REDIRECT + request.getHeader(Constants.REFERER);
     }
 }

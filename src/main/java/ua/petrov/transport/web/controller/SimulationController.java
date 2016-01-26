@@ -1,5 +1,6 @@
 package ua.petrov.transport.web.controller;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -17,6 +18,8 @@ import ua.petrov.transport.core.entity.Bus;
 import ua.petrov.transport.core.entity.Route;
 import ua.petrov.transport.core.entity.Station;
 import ua.petrov.transport.core.sorter.BusSorter;
+import ua.petrov.transport.core.util.CollectionUtil;
+import ua.petrov.transport.core.validator.api.IBeanValidator;
 import ua.petrov.transport.db.constants.DbTables.BusFields;
 import ua.petrov.transport.db.constants.DbTables.StationFields;
 import ua.petrov.transport.service.bus.IBusService;
@@ -25,10 +28,7 @@ import ua.petrov.transport.service.route.IRouteService;
 import ua.petrov.transport.service.station.IStationService;
 import ua.petrov.transport.simulation.controller.Simulation;
 import ua.petrov.transport.web.Constants;
-import ua.petrov.transport.web.Constants.Entities;
-import ua.petrov.transport.web.Constants.Mapping;
-import ua.petrov.transport.web.Constants.ParserPath;
-import ua.petrov.transport.web.Constants.View;
+import ua.petrov.transport.web.Constants.*;
 import ua.petrov.transport.web.converter.RequestConverter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,13 +36,20 @@ import javax.servlet.http.HttpSession;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Владислав on 07.01.2016.
  */
 @Controller
 @RequestMapping(Mapping.SIMULATION)
-public class SimulationController {
+public class SimulationController extends AbstractController {
+
+    private static final Logger LOGGER = Logger.getLogger(SimulationController.class);
+
+    private static final String SPEED_MATCH = "Speed must be positive";
+    private static final String BUS_ERROR = "Filed to add to the route";
+    private static final String BUS_MESSAGE = "The bus has been added to the route";
 
     @Autowired
     private IBusService busService;
@@ -55,6 +62,9 @@ public class SimulationController {
 
     @Autowired
     private IResultsService resultsService;
+
+    @Autowired
+    private IBeanValidator beanValidator;
 
     @RequestMapping(value = Constants.VIEW, method = RequestMethod.GET)
     public ModelAndView getAll() {
@@ -73,17 +83,26 @@ public class SimulationController {
     }
 
     @RequestMapping(value = Constants.START, method = RequestMethod.GET)
-    public String start(@RequestParam int speedValue, HttpServletRequest request) {
-        List<Bus> buses = busService.getAll();
-        List<Route> routes = routeService.getAll();
-        ModelMap modelMap = RequestConverter.convertToModelMap(request);
-        DailyFlow dailyFlow = getFlow(modelMap);
-        HttpSession session = request.getSession();
-        Simulation simulation = new Simulation(buses, routes, dailyFlow);
-        session.setAttribute(Entities.SIMULATION_PROCESS, simulation);
-        simulation.start(LocalTime.of(22, 30).toSecondOfDay(), speedValue);
-        uploadResults(simulation.getEventLogger());
-        return Constants.REDIRECT + request.getHeader(Constants.REFERER);
+    public String start(@RequestParam int speedValue, HttpServletRequest request, HttpSession session) {
+        String header = getHeader(request);
+
+        if (speedValue < 0) {
+            session.setAttribute(Message.ERROR_MESSAGE, SPEED_MATCH);
+            LOGGER.error(SPEED_MATCH);
+        } else {
+            List<Bus> buses = busService.getAll();
+            List<Route> routes = routeService.getAll();
+
+            ModelMap modelMap = RequestConverter.convertToModelMap(request);
+            DailyFlow dailyFlow = getFlow(modelMap);
+
+            Simulation simulation = new Simulation(buses, routes, dailyFlow);
+            session.setAttribute(Entities.SIMULATION_PROCESS, simulation);
+            simulation.start(LocalTime.of(22, 30).toSecondOfDay(), speedValue);
+            uploadResults(simulation.getEventLogger());
+        }
+
+        return header;
     }
 
     @RequestMapping(value = Constants.PAUSE, method = RequestMethod.GET)
@@ -102,15 +121,21 @@ public class SimulationController {
         ModelMap modelMap = RequestConverter.convertToModelMap(request);
         Bus bus = getBus(modelMap);
         Simulation simulation = (Simulation) session.getAttribute(Entities.SIMULATION_PROCESS);
+        Map<String, List<String>> errors = beanValidator.validateBean(bus);
 
         String message;
-        if (simulation.isPauseFlag()) {
-            simulation.addBus(bus);
-            message = "The bus has been added to the route";
-        } else {
-            message = "Error to add the bus";
+        if (CollectionUtil.isNotEmpty(errors)) {
+            LOGGER.error(errors.toString());
+            message = errors.toString();
+            return message;
         }
 
+        if (simulation.isPauseFlag()) {
+            simulation.addBus(bus);
+            message = BUS_MESSAGE;
+        } else {
+            message = BUS_ERROR;
+        }
         simulation.setPauseFlag();
         return message;
     }

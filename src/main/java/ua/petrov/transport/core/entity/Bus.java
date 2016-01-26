@@ -14,51 +14,37 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Владислав on 08.01.2016.
- */
 @XmlType(name = "bus",
         propOrder = {
                 "seat",
                 "route",
         })
-@XmlAccessorType(XmlAccessType.FIELD)
-public class Bus extends Entity {
+public class Bus extends Entity implements ViewBean {
 
     @NotNull
-    @XmlElement(name = "route")
     private Route route;
 
     @NotNull
-    @XmlTransient
     private Station currentStation;
 
-    @XmlElement(name = "seat")
     @MatchPattern(pattern = Pattern.SEAT, message = "The number of seats should be in the interval  [10-35]")
     private int seat;
 
     @NotNull
-    @XmlTransient
     private Time timeToStation = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     @NotNull
-    @XmlTransient
     private Time travelTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     @NotNull
-    @XmlTransient
     private Time waitingTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     @NotNull
-    @XmlTransient
     private List<Passenger> passengerList = new ArrayList<>();
 
-    @NotNull
-    @XmlTransient
     private Direction direction;
 
     @NotNull
-    @XmlTransient
     private Time startTime = Time.valueOf(LocalTime.ofSecondOfDay(0));
 
     public Bus() {
@@ -87,6 +73,7 @@ public class Bus extends Entity {
         this.timeToStation = TimeUtil.getSqlTime(getTimeToStationLong() - timeToStation);
     }
 
+    @XmlTransient
     public Time getWaitingTime() {
         return waitingTime;
     }
@@ -105,6 +92,7 @@ public class Bus extends Entity {
         return startTime.toLocalTime().toSecondOfDay();
     }
 
+    @XmlTransient
     public Time getStartTime() {
         return startTime;
     }
@@ -113,6 +101,7 @@ public class Bus extends Entity {
         this.startTime = startTime;
     }
 
+    @XmlTransient
     public Direction getDirection() {
         return direction;
     }
@@ -131,6 +120,7 @@ public class Bus extends Entity {
         return travelTime.toLocalTime().toSecondOfDay();
     }
 
+    @XmlTransient
     public Time getTravelTime() {
         return travelTime;
     }
@@ -139,6 +129,7 @@ public class Bus extends Entity {
         this.travelTime = travelTime;
     }
 
+    @XmlTransient
     public Station getCurrentStation() {
         return currentStation;
     }
@@ -147,6 +138,7 @@ public class Bus extends Entity {
         this.currentStation = currentStation;
     }
 
+    @XmlTransient
     public List<Passenger> getPassengerList() {
         return passengerList;
     }
@@ -155,6 +147,7 @@ public class Bus extends Entity {
         this.passengerList = passengerList;
     }
 
+    @XmlElement(name = "route")
     public Route getRoute() {
         return route;
     }
@@ -173,6 +166,7 @@ public class Bus extends Entity {
         return timeToStation.toLocalTime().toSecondOfDay();
     }
 
+    @XmlTransient
     public Time getTimeToStation() {
         return timeToStation;
     }
@@ -181,6 +175,7 @@ public class Bus extends Entity {
         this.timeToStation = timeToStation;
     }
 
+    @XmlElement(name = "seat")
     public int getSeat() {
         return seat;
     }
@@ -210,7 +205,7 @@ public class Bus extends Entity {
         return true;
     }
 
-    public Station next(Station station) {
+    public Station getNext(Station station) {
         List<Arc> arcList = route.getArcList();
 
         if (route.getType() == Type.DIRECT) {
@@ -218,15 +213,15 @@ public class Bus extends Entity {
                 case BACK:
                     if (route.getStartStation().equals(station)) {
                         direction = Direction.STRAIGHT;
-                        return nextStation(station);
+                        return getNextStation(station);
                     }
-                    return previousStation(station);
+                    return getPreviousStation(station);
                 case STRAIGHT:
                     if (route.getEndStation().equals(station)) {
                         direction = Direction.BACK;
-                        return previousStation(station);
+                        return getPreviousStation(station);
                     }
-                    return nextStation(station);
+                    return getNextStation(station);
             }
         }
 
@@ -239,7 +234,7 @@ public class Bus extends Entity {
     }
 
 
-    private Station nextStation(Station station) {
+    private Station getNextStation(Station station) {
         List<Arc> arcList = route.getArcList();
         for (Arc arc : arcList) {
             if (arc.getFromStation().equals(station)) {
@@ -249,7 +244,7 @@ public class Bus extends Entity {
         return null;
     }
 
-    private Station previousStation(Station station) {
+    private Station getPreviousStation(Station station) {
         List<Arc> arcList = route.getArcList();
         for (Arc arc : arcList) {
             if (arc.getToStation().equals(station)) {

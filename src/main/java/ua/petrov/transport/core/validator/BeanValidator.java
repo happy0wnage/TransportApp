@@ -2,6 +2,7 @@ package ua.petrov.transport.core.validator;
 
 
 import org.springframework.stereotype.Component;
+import ua.petrov.transport.core.entity.ViewBean;
 import ua.petrov.transport.core.validator.annotation.NotNull;
 import ua.petrov.transport.core.validator.api.IBeanValidator;
 import ua.petrov.transport.core.validator.factory.ValidatorFactory;
@@ -12,12 +13,12 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 @Component
-public class BeanValidator<T> implements IBeanValidator<T> {
+public class BeanValidator implements IBeanValidator {
 
     private ValidatorFactory factory = new ValidatorFactory();
 
     @Override
-    public Map<String, List<String>> validateBean(T bean) {
+    public Map<String, List<String>> validateBean(ViewBean bean) {
         Map<String, List<String>> exceptions = new HashMap<>();
         try {
             for (Field field : bean.getClass().getDeclaredFields()) {

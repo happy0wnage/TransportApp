@@ -6,10 +6,7 @@ import ua.petrov.transport.core.validator.annotation.MatchPattern;
 import ua.petrov.transport.core.validator.annotation.NotNull;
 import ua.petrov.transport.core.validator.annotation.StringNotEmpty;
 
-/**
- * Created by Владислав on 12.01.2016.
- */
-public class User extends Entity {
+public class User extends Entity implements ViewBean {
 
     private static final String LOGIN = "Incorrect login value";
     private static final String PASSWORD = "Incorrect password value";
