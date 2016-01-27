@@ -8,10 +8,8 @@ public class Constants {
     public static final String DELETE = "/delete";
     public static final String UPDATE = "/update";
 
-    public static final String ADD_ROUTE = "/addBus";
     public static final String INDEX = "/index.html";
     public static final String VIEW = "/view";
-    public static final String PAGE = "/page";
     public static final String START = "/start";
     public static final String PAUSE = "/pause";
     public static final String ADD_BUS = "/addBus";
@@ -19,7 +17,6 @@ public class Constants {
 
 
     public static class Message {
-        public static String MESSAGE = "message";
         public static String ERROR_MESSAGE = "errorMessage";
         public static final String VALIDATION_ERRORS = "validationErrors";
     }
@@ -36,7 +33,6 @@ public class Constants {
         public static final String LOGIN = "/login";
         public static final String DOWNLOAD = "/download";
         public static final String RESULTS = "/results";
-        public static final String LOGS = "/logs";
     }
 
     public static class View {
